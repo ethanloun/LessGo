@@ -1,0 +1,110 @@
+# Product Requirements Document (PRD)
+
+## App Name: LessGo
+
+### 1. Overview
+
+LessGo is a local marketplace iOS app for buying and selling items within a user's vicinity, focused on trust, simplicity, and safety. The app provides an intuitive interface for creating listings, browsing local items, and facilitating secure local transactions.
+
+---
+
+### 2. Target Users
+
+* Local buyers and sellers looking for a trusted, easy-to-use platform.
+* Users who want quick local transactions with safety and convenience.
+* iOS users (iOS 16+) who prefer native app experiences.
+
+---
+
+### 3. Core Features (Implemented)
+
+#### 3.1 User Authentication & Profiles
+
+* **User Registration & Login**: Email/password authentication system.
+* **User Profiles**: Display names, ratings, badges, and verification status.
+* **Profile Management**: Edit profile information and view activity stats.
+* **User Verification**: Badge system for verified sellers and trusted users.
+* **Rating System**: 5-star rating system with review management.
+
+#### 3.2 Listing Management
+
+* **Create Listings**: Multi-step form with photo upload, basic info, details, location, and review.
+* **Photo Management**: Up to 10 photos with camera integration and gallery access.
+* **Listing Details**: Title, description, price, category, condition, brand, model, tags.
+* **Location Services**: Address input, delivery radius, pickup/shipping options.
+* **Draft System**: Auto-save every 30 seconds with manual save options.
+* **Listing Preview**: Real-time preview before posting.
+
+#### 3.3 Browse & Search
+
+* **Listing Feed**: Scrollable feed of local listings with pull-to-refresh.
+* **Search Functionality**: Text-based search across titles, descriptions, and tags.
+* **Advanced Filtering**: Category, price range, and location-based filters.
+* **Map View**: Toggle between list and map view of listings.
+* **Category System**: 10 main categories with visual icons.
+
+#### 3.4 Messaging System (Expanded)
+
+* Real-time, item-scoped chats with listing context, presence, typing indicators, read receipts, and delivery states.
+* Support for text, photos/video, voice notes, file attachments for proofs/directions, quick replies, emoji, reactions, and link previews.
+* Status-based thread organization, pinned conversations, swipe actions, bulk actions, and smart sorting.
+* Persistent listing chip with quick actions, structured offers and negotiation flow, embedded local meetup scheduler.
+* In-chat identity badges, blocking/reporting, auto-redaction, smart prompts, bundles, verification media, dispute resolution, configurable notifications, availability settings, moderation tools, accessibility support, cross-platform sync, and admin hooks.
+
+---
+
+### 4. Profile System (Expanded)
+
+* **Profile Overview**: Clean header with profile photo, display name, handle, city/region, join date, short bio with preferred meetup areas and availability. Trust signals like rating average, completed deals, verification badges, last active status with privacy controls.
+* **Listings & Activity**: Sections for active and sold/archived listings with grid/list views, filters, inline actions, bulk edits, and activity timeline.
+* **Reviews & Reputation**: Aggregated reviews with ratings, tags, verified-deal markers, filters, highlights, dispute flow, badges, on-time rate, and median response time.
+* **Verification & Badges**: Tiered verification (email, phone, ID), optional social links, tenure badge, safety badges.
+* **Meetups & Availability**: Scheduler with preferred days/times, blackout dates, typical response time, preset meetup locations, auto-replies, vacation mode.
+* **Privacy & Safety Controls**: Centralized settings for last active, location radius, reviews, badges, contact masking, safety tips, messaging restrictions.
+* **Communication Preferences**: Configurable notifications, quiet hours, per-thread overrides, language preferences, Do Not Disturb, snooze.
+* **Inventory Management**: Drafts, templates, reusable snippets, bulk updates, analytics-lite for views/saves/messages/meetup conversions.
+* **Saved & Following**: Saves for listings, following for users/shops, alerts for relists/price drops, follower visibility settings, recommendation controls.
+* **Trust & Compliance**: Policy summaries, data export/deletion, consent logs, retention settings, audit log of account actions.
+* **Support & Help**: In-profile help access, safety tips, contact support, status pages, troubleshoot checklist.
+* **Accessibility & Performance**: Large text, high-contrast, screen reader support, offline editing, optimistic saves, conflict resolution, image guidelines.
+* **Cross-Platform Continuity**: Real-time profile sync, deep links to sections, session controls with 2FA, QR/link sharing.
+
+**Developer Integration Details**
+
+* **Data Models**: User, Listing, Review, Availability, Follow.
+* **States**: verification, listing, review, privacy, account.
+* **Permissions**: Privacy and safety restrictions, contact masking, review limitations.
+* **Events**: profile\_updated, listing\_status\_changed, review\_created, availability\_updated, verification\_updated, privacy\_setting\_updated, follow\_created/removed, moderation\_action.
+* **APIs**: Pagination, bulk updates, profile PATCH, webhooks, translation toggles, 2FA/session endpoints.
+* **Privacy**: Default-masked contact info, per-field privacy, consent logs, coarse location storage.
+
+---
+
+### 5. Technical Architecture
+
+* Platform: iOS 16+, SwiftUI with MVVM, Swift 5.9+, Xcode 15+.
+* Modular file structure for Models, Views, ViewModels, Services, Utilities, and Resources.
+
+---
+
+### 6. Security & Privacy
+
+* Secure authentication, input sanitization, privacy controls, verification, reporting, blocking.
+
+---
+
+### 7. Development Status
+
+* **Completed**: Core UI, listing creation, photo management, search/filtering, profile management, messaging structure, location services, validation, auto-save.
+* **In Progress**: Backend API integration, real-time messaging, push notifications, authentication backend.
+* **Planned**: Payment processing, analytics, social features, performance optimization.
+
+---
+
+### 8. Notes
+
+* Adheres to iOS Human Interface Guidelines.
+* Scalable, maintainable architecture.
+* Comprehensive validation and error handling.
+* Modular structure for easy feature additions.
+

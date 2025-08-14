@@ -1,0 +1,343 @@
+
+# Product Requirements Document (PRD)  
+## App Name: LessGo
+
+### 1. Overview  
+LessGo is a local marketplace iOS app for buying and selling items within a user's vicinity, focused on trust, simplicity, and safety. The app provides an intuitive interface for creating listings, browsing local items, and facilitating secure local transactions.
+
+---
+
+### 2. Target Users  
+- Local buyers and sellers looking for a trusted, easy-to-use platform  
+- Users who want quick local transactions with safety and convenience
+- iOS users (iOS 16+) who prefer native app experiences
+
+---
+
+### 3. Core Features (Implemented)
+
+#### 3.1 User Authentication & Profiles
+- **User Registration & Login**: Email/password authentication system
+- **User Profiles**: Display names, ratings, badges, and verification status
+- **Profile Management**: Edit profile information and view activity stats
+- **User Verification**: Badge system for verified sellers and trusted users
+- **Rating System**: 5-star rating system with review management
+
+#### 3.2 Listing Management
+- **Create Listings**: Multi-step form with photo upload, basic info, details, location, and review
+- **Photo Management**: Up to 10 photos with camera integration and gallery access
+- **Listing Details**: Title, description, price, category, condition, brand, model, tags
+- **Location Services**: Address input, delivery radius, pickup/shipping options
+- **Draft System**: Auto-save every 30 seconds with manual save options
+- **Listing Preview**: Real-time preview before posting
+
+#### 3.3 Browse & Search
+- **Listing Feed**: Scrollable feed of local listings with pull-to-refresh
+- **Search Functionality**: Text-based search across titles, descriptions, and tags
+- **Advanced Filtering**: Category, price range, and location-based filters
+- **Map View**: Toggle between list and map view of listings
+- **Category System**: 10 main categories with visual icons
+
+#### 3.4 Messaging System
+- **Chat Interface**: Real-time messaging between buyers and sellers
+- **Message Types**: Text, images, offers, and location sharing
+- **Chat Management**: List of conversations with unread indicators
+- **Offer System**: Structured offer making with status tracking
+
+#### 3.5 Location & Delivery
+- **Geolocation**: Current location detection and address autocomplete
+- **Delivery Options**: Pickup-only, shipping available, or both
+- **Radius Selection**: Configurable delivery radius (1-100 miles)
+- **Location Picker**: Interactive map-based location selection
+
+#### 3.6 User Experience Features
+- **Tab Navigation**: Home, Search, Sell, Messages, Profile
+- **Progress Indicators**: Step-by-step progress for listing creation
+- **Auto-save**: Automatic draft saving to prevent data loss
+- **Validation**: Real-time form validation with helpful error messages
+- **Responsive Design**: Adaptive layouts for different screen sizes
+
+---
+
+### 4. Technical Architecture
+
+#### 4.1 Platform & Framework
+- **Platform**: iOS 16+
+- **UI Framework**: SwiftUI with MVVM architecture
+- **Language**: Swift 5.9+
+- **Development Environment**: Xcode 15+
+
+#### 4.2 App Structure
+```
+LessGo/
+├── Models/                    # Data models and business logic
+│   ├── User.swift            # User profile and authentication
+│   ├── Listing.swift         # Item listings and categories
+│   ├── DraftListing.swift    # Draft listing management
+│   ├── Message.swift         # Chat and messaging system
+│   ├── Review.swift          # User ratings and reviews
+│   └── Location.swift        # Location and geolocation
+├── Views/                     # SwiftUI Views and UI components
+│   ├── Authentication/        # Login, signup, verification
+│   ├── Home/                 # Main feed, search, listings
+│   ├── Listing/              # Create, edit, view listings
+│   ├── Messaging/            # Chat interface and management
+│   ├── Profile/              # User profile and settings
+│   └── Shared/               # Reusable UI components
+├── ViewModels/                # MVVM state management
+│   ├── AuthViewModel.swift   # Authentication logic
+│   ├── ListingViewModel.swift # Listing management
+│   └── CreateListingViewModel.swift # Listing creation flow
+├── Services/                  # Business logic and external APIs
+├── Utilities/                 # Constants, extensions, helpers
+└── Resources/                 # Assets, fonts, localization
+```
+
+#### 4.3 Data Models
+- **User**: Profile information, verification status, ratings, badges
+- **Listing**: Item details, photos, pricing, location, availability
+- **DraftListing**: In-progress listings with validation
+- **Message**: Chat messages, offers, and communication
+- **Location**: Geographic coordinates and address information
+- **Review**: User feedback and rating system
+
+---
+
+### 5. Detailed Feature Specifications
+
+#### 5.1 Listing Creation Flow
+**Step 1: Photos**
+- Upload up to 10 high-quality images
+- Camera integration for direct photo capture
+- Gallery access for existing photos
+- Drag-and-drop reordering
+- Minimum 1 photo required
+
+**Step 2: Basic Information**
+- Title (max 60 characters)
+- Description (min 50, max 1000 characters)
+- Price (with negotiable option)
+- Category selection (10 predefined categories)
+- Item condition (New to Poor)
+
+**Step 3: Details**
+- Quantity management
+- Brand and model information
+- Custom tags (max 10)
+- Shipping options (pickup-only, shipping available)
+- Shipping cost configuration
+
+**Step 4: Location**
+- Address input with autocomplete
+- Current location detection
+- Delivery radius selection
+- Map-based location picker
+
+**Step 5: Review**
+- Complete listing preview
+- Validation summary
+- Final posting confirmation
+
+#### 5.2 Search & Discovery
+- **Text Search**: Real-time search across listing content
+- **Category Filtering**: Filter by item category
+- **Price Range**: Predefined price brackets
+- **Location Filtering**: Proximity-based results
+- **View Toggle**: Switch between list and map views
+
+#### 5.3 User Profile System
+- **Profile Information**: Display name, email, phone, bio
+- **Activity Stats**: Items sold, purchased, ratings
+- **Verification Status**: Badge system for trusted users
+- **Settings**: Profile editing and app preferences
+
+#### 5.4 Messaging & Communication
+- **Chat Interface**: Real-time messaging
+- **Message Types**: Text, images, offers, location
+- **Conversation Management**: Chat history and organization
+- **Notification System**: Unread message indicators
+
+---
+
+### 6. User Experience Features
+
+\`\`\`
+LessGo/                      <-- Root project folder
+├── Models/                    <-- Data models and business logic structs/classes
+│   ├── User.swift
+│   ├── Listing.swift
+│   ├── Message.swift
+│   ├── Review.swift
+│   ├── Category.swift
+│   └── Location.swift
+│
+├── Views/                     <-- SwiftUI Views for UI components and screens
+│   ├── Authentication/
+│   │   ├── LoginView.swift
+│   │   ├── SignupView.swift
+│   │   └── VerificationView.swift
+│   │
+│   ├── Home/
+│   │   ├── ListingFeedView.swift
+│   │   ├── ListingCardView.swift
+│   │   ├── SearchBarView.swift
+│   │   ├── FiltersView.swift
+│   │   └── MapView.swift
+│   │
+│   ├── Listing/
+│   │   ├── CreateListingView.swift
+│   │   ├── EditListingView.swift
+│   │   ├── ListingDetailView.swift
+│   │   └── PhotoPickerView.swift
+│   │
+│   ├── Messaging/
+│   │   ├── ChatListView.swift
+│   │   ├── ChatView.swift
+│   │   └── MessageBubbleView.swift
+│   │
+│   ├── Profile/
+│   │   ├── ProfileView.swift
+│   │   ├── EditProfileView.swift
+│   │   ├── RatingsReviewsView.swift
+│   │   └── VerificationStatusView.swift
+│   │
+│   ├── Favorites/
+│   │   └── FavoritesListView.swift
+│   │
+│   ├── Notifications/
+│   │   └── NotificationsView.swift
+│   │
+│   └── Shared/
+│       ├── LoadingView.swift
+│       ├── AlertView.swift
+│       └── CustomButton.swift
+│
+├── ViewModels/                <-- SwiftUI ObservableObject classes for state management
+│   ├── AuthViewModel.swift
+│   ├── ListingViewModel.swift
+│   ├── MessagingViewModel.swift
+│   ├── ProfileViewModel.swift
+│   ├── FavoritesViewModel.swift
+│   └── NotificationsViewModel.swift
+│
+├── Services/                  <-- Network, database, storage, and utility services
+│   ├── AuthService.swift
+│   ├── ListingService.swift
+│   ├── MessagingService.swift
+│   ├── LocationService.swift
+│   ├── NotificationService.swift
+│   └── UserService.swift
+│
+├── Utilities/                 <-- Helpers, extensions, constants
+│   ├── Extensions.swift
+│   ├── Constants.swift
+│   ├── Validators.swift
+│   └── ImageHelpers.swift
+│
+├── Resources/                 <-- Assets, localized strings, fonts, and other resources
+│   ├── Assets.xcassets
+│   ├── Localization/
+│   └── Fonts/
+│
+├── LessGoApp.swift            <-- Main App entry point
+└── README.md                  <-- Project overview and setup instructions
+\`\`\`
+
+---
+
+### 7. Data Management & Storage
+
+#### 7.1 Local Storage
+- **Draft Management**: Local storage of incomplete listings
+- **User Preferences**: App settings and user choices
+- **Cache Management**: Temporary storage of frequently accessed data
+
+#### 7.2 Data Validation
+- **Input Validation**: Client-side validation rules
+- **Business Logic**: Domain-specific validation requirements
+- **Error Handling**: Graceful error recovery and user feedback
+
+---
+
+### 8. Performance & Scalability
+
+#### 8.1 Performance Optimizations
+- **Lazy Loading**: On-demand content loading
+- **Image Optimization**: Compressed image storage and display
+- **Efficient Filtering**: Optimized search and filter algorithms
+- **Memory Management**: Proper resource cleanup and management
+
+#### 8.2 Scalability Considerations
+- **Modular Architecture**: Separated concerns for easy expansion
+- **Service Layer**: Abstracted business logic for backend integration
+- **Configuration Management**: Centralized constants and settings
+
+---
+
+### 9. Security & Privacy
+
+#### 9.1 Data Protection
+- **User Authentication**: Secure login and session management
+- **Input Sanitization**: Protection against malicious input
+- **Privacy Controls**: User data protection and control
+
+#### 9.2 Trust & Safety
+- **User Verification**: Badge system for trusted users
+- **Reporting System**: User reporting and moderation tools
+- **Blocking**: User blocking and safety features
+
+---
+
+### 10. Future Enhancements
+
+#### 10.1 Planned Features
+- **Push Notifications**: Real-time alerts for messages and offers
+- **Payment Integration**: Secure payment processing
+- **Advanced Analytics**: Listing performance metrics
+- **Social Features**: User following and social interactions
+
+#### 10.2 Technical Improvements
+- **Backend Integration**: Full API integration
+- **Real-time Updates**: Live data synchronization
+- **Offline Support**: Offline functionality and sync
+- **Performance Monitoring**: Analytics and error tracking
+
+---
+
+### 11. Development Status
+
+#### 11.1 Completed Features ✅
+- Complete user interface and navigation
+- Multi-step listing creation flow
+- Photo management and camera integration
+- Search and filtering system
+- User profile management
+- Messaging interface structure
+- Location services and mapping
+- Form validation and error handling
+- Auto-save and draft management
+- Responsive design and accessibility
+
+#### 11.2 In Progress 🔄
+- Backend API integration
+- Real-time messaging implementation
+- Push notification system
+- User authentication backend
+
+#### 11.3 Planned 📋
+- Payment processing
+- Advanced analytics
+- Social features
+- Performance optimization
+
+---
+
+### 12. Notes
+
+- The app follows iOS Human Interface Guidelines for consistent user experience
+- MVVM architecture ensures maintainable and testable code
+- All features are designed with scalability and future expansion in mind
+- The interface prioritizes simplicity while providing powerful functionality
+- Comprehensive validation and error handling improve user experience
+- Auto-save functionality prevents data loss during listing creation
+- The modular structure allows for easy feature additions and modifications
