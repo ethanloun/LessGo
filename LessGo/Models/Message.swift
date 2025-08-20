@@ -10,8 +10,12 @@ struct Message: Identifiable, Codable {
     let timestamp: Date
     var isRead: Bool
     var isDelivered: Bool
+    var readAt: Date?
+    var deliveredAt: Date?
+    var imageURL: String?
+    var thumbnailURL: String?
     
-    init(id: String, chatId: String, senderId: String, receiverId: String, content: String, messageType: MessageType = .text) {
+    init(id: String, chatId: String, senderId: String, receiverId: String, content: String, messageType: MessageType = .text, imageURL: String? = nil) {
         self.id = id
         self.chatId = chatId
         self.senderId = senderId
@@ -21,6 +25,10 @@ struct Message: Identifiable, Codable {
         self.timestamp = Date()
         self.isRead = false
         self.isDelivered = false
+        self.readAt = nil
+        self.deliveredAt = nil
+        self.imageURL = imageURL
+        self.thumbnailURL = imageURL
     }
 }
 
@@ -44,9 +52,12 @@ struct Chat: Identifiable, Codable {
     let id: String
     let participants: [String]
     let listingId: String?
-    let lastMessage: Message?
+    var lastMessage: Message?
     let createdAt: Date
     var updatedAt: Date
+    var isPinned: Bool
+    var isArchived: Bool
+    var unreadCount: Int
     
     init(id: String, participants: [String], listingId: String? = nil) {
         self.id = id
@@ -55,6 +66,37 @@ struct Chat: Identifiable, Codable {
         self.lastMessage = nil
         self.createdAt = Date()
         self.updatedAt = Date()
+        self.isPinned = false
+        self.isArchived = false
+        self.unreadCount = 0
+    }
+}
+
+struct ChatPreview: Identifiable, Codable {
+    let id: String
+    let participants: [String]
+    let listingId: String?
+    let lastMessage: Message?
+    let createdAt: Date
+    var updatedAt: Date
+    var isPinned: Bool
+    var isArchived: Bool
+    var unreadCount: Int
+    var otherParticipant: User?
+    var listing: Listing?
+    
+    init(from chat: Chat, otherParticipant: User? = nil, listing: Listing? = nil) {
+        self.id = chat.id
+        self.participants = chat.participants
+        self.listingId = chat.listingId
+        self.lastMessage = chat.lastMessage
+        self.createdAt = chat.createdAt
+        self.updatedAt = chat.updatedAt
+        self.isPinned = chat.isPinned
+        self.isArchived = chat.isArchived
+        self.unreadCount = chat.unreadCount
+        self.otherParticipant = otherParticipant
+        self.listing = listing
     }
 }
 

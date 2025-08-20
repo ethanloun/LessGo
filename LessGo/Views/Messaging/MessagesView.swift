@@ -1,86 +1,307 @@
 import SwiftUI
 
 struct MessagesView: View {
+    @EnvironmentObject var viewModel: MessagingViewModel
+    @State private var showNewMessageSheet = false
+    
     var body: some View {
-        ZStack {
-            Color.blue.ignoresSafeArea(.all)
-            VStack(spacing: 0) {
-                // Messages List
-                ScrollView {
-                    LazyVStack(spacing: 0) {
-                        ForEach(sampleMessages, id: \.id) { message in
-                            MessageRowView(message: message)
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Text("Messages")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(Constants.Colors.label)
+                Spacer()
+                Button(action: { showNewMessageSheet = true }) {
+                    Image(systemName: "square.and.pencil")
+                        .foregroundColor(Constants.Colors.label)
+                        .font(.title2)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.top, 8) // spacing inside
+            .padding(.bottom, 12)
+            .padding(.top, UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0) // <-- push below notch
+            .background(Constants.Colors.background)
+
+            // Search Bar
+            SearchBarView(searchText: $viewModel.searchText)
+                .padding(.horizontal)
+                .padding(.top, 8)
+
+            // Content
+            Group {
+                if viewModel.isLoading {
+                    VStack {
+                        Spacer()
+                        ProgressView("Loading chats...")
+                            .foregroundColor(.secondary)
+                        Spacer()
+                    }
+                } else if viewModel.filteredChats.isEmpty {
+                    EmptyStateView(onNewMessage: { showNewMessageSheet = true })
+                        .frame(maxWidth: .infinity, maxHeight: .infinity) // <-- fill space
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 0) {
+                            if !viewModel.pinnedChats.isEmpty {
+                                PinnedChatsSection(chats: viewModel.pinnedChats, viewModel: viewModel)
+                            }
+                            if !viewModel.regularChats.isEmpty {
+                                RegularChatsSection(chats: viewModel.regularChats, viewModel: viewModel)
+                            }
+                            if !viewModel.archivedChats.isEmpty {
+                                ArchivedChatsSection(chats: viewModel.archivedChats, viewModel: viewModel)
+                            }
                         }
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
                     }
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top) // <-- expand content area
         }
-        .navigationTitle("Messages")
-        .navigationBarTitleDisplayMode(.large)
-    }
-    
-    private var sampleMessages: [ChatMessage] {
-        [
-            ChatMessage(id: "1", senderName: "John Smith", lastMessage: "Hi! Is this item still available?", timestamp: Date(), isRead: false),
-            ChatMessage(id: "2", senderName: "Sarah Johnson", lastMessage: "Great! I'll take it. When can we meet?", timestamp: Date().addingTimeInterval(-3600), isRead: true),
-            ChatMessage(id: "3", senderName: "Mike Wilson", lastMessage: "Can you do $80 for the chair?", timestamp: Date().addingTimeInterval(-7200), isRead: true),
-            ChatMessage(id: "4", senderName: "Emma Davis", lastMessage: "Thanks for the quick delivery!", timestamp: Date().addingTimeInterval(-86400), isRead: true),
-            ChatMessage(id: "5", senderName: "Alex Chen", lastMessage: "Do you have more photos?", timestamp: Date().addingTimeInterval(-172800), isRead: false)
-        ]
+        // Make the whole screen white, including above the notch and above the custom tab bar
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(Constants.Colors.background)
+        .ignoresSafeArea(edges: [.top, .bottom]) // <-- remove black bands
+        .alert("Error", isPresented: $viewModel.showError) {
+            Button("OK") { viewModel.dismissError() }
+        } message: {
+            Text(viewModel.errorMessage)
+        }
+        .sheet(isPresented: $viewModel.showChatView) {
+            if let selectedChat = viewModel.selectedChat {
+                ChatView(chat: selectedChat)
+            }
+        }
+        .sheet(isPresented: $showNewMessageSheet) {
+            NewMessageView(viewModel: viewModel)
+        }
     }
 }
 
-struct ChatMessage {
-    let id: String
-    let senderName: String
-    let lastMessage: String
-    let timestamp: Date
-    let isRead: Bool
-}
 
-struct MessageRowView: View {
-    let message: ChatMessage
+// MARK: - Search Bar
+struct SearchBarView: View {
+    @Binding var searchText: String
     
     var body: some View {
         HStack {
-            // Avatar
-            Circle()
-                .fill(Color.white.opacity(0.3))
-                .frame(width: 50, height: 50)
-                .overlay(
-                    Text(String(message.senderName.prefix(1)))
-                        .font(.headline)
-                        .foregroundColor(.white)
-                )
+            Image(systemName: "magnifyingglass")
+                .foregroundColor(Constants.Colors.secondaryLabel)
             
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(message.senderName)
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    Spacer()
-                    Text(timeAgoString(from: message.timestamp))
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.7))
+            TextField("Search chats, users, or messages...", text: $searchText)
+                .textFieldStyle(PlainTextFieldStyle())
+                .foregroundColor(Constants.Colors.label)
+            
+            if !searchText.isEmpty {
+                Button("Clear") {
+                    searchText = ""
                 }
-                
-                Text(message.lastMessage)
-                    .font(.subheadline)
-                    .foregroundColor(.white.opacity(0.8))
-                    .lineLimit(2)
-            }
-            
-            if !message.isRead {
-                Circle()
-                    .fill(Color.yellow)
-                    .frame(width: 8, height: 8)
+                .foregroundColor(Constants.Colors.label)
             }
         }
-        .padding()
-        .background(message.isRead ? Color.clear : Color.white.opacity(0.1))
-        .contentShape(Rectangle())
-        .onTapGesture {
-            // Handle tap
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Constants.Colors.sampleCardBackground)
+        .cornerRadius(10)
+    }
+}
+
+// MARK: - Pinned Chats Section
+struct PinnedChatsSection: View {
+    let chats: [ChatPreview]
+    let viewModel: MessagingViewModel
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "pin.fill")
+                    .foregroundColor(.orange)
+                Text("Pinned")
+                    .font(.caption)
+                    .foregroundColor(Constants.Colors.secondaryLabel)
+                Spacer()
+            }
+            .padding(.horizontal)
+            
+            ForEach(chats) { chat in
+                ChatRowView(chat: chat, viewModel: viewModel)
+                    .background(Color.orange.opacity(0.1))
+            }
+        }
+    }
+}
+
+// MARK: - Regular Chats Section
+struct RegularChatsSection: View {
+    let chats: [ChatPreview]
+    let viewModel: MessagingViewModel
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "message.fill")
+                    .foregroundColor(Constants.Colors.label)
+                Text("Recent")
+                    .font(.caption)
+                    .foregroundColor(Constants.Colors.secondaryLabel)
+                Spacer()
+            }
+            .padding(.horizontal)
+            
+            ForEach(chats) { chat in
+                ChatRowView(chat: chat, viewModel: viewModel)
+            }
+        }
+    }
+}
+
+// MARK: - Archived Chats Section
+struct ArchivedChatsSection: View {
+    let chats: [ChatPreview]
+    let viewModel: MessagingViewModel
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "archivebox.fill")
+                    .foregroundColor(Constants.Colors.secondaryLabel)
+                Text("Archived")
+                    .font(.caption)
+                    .foregroundColor(Constants.Colors.secondaryLabel)
+                Spacer()
+            }
+            .padding(.horizontal)
+            
+            ForEach(chats) { chat in
+                ChatRowView(chat: chat, viewModel: viewModel)
+                    .opacity(0.6)
+            }
+        }
+    }
+}
+
+// MARK: - Chat Row View
+struct ChatRowView: View {
+    let chat: ChatPreview
+    let viewModel: MessagingViewModel
+    @State private var showChatActions = false
+    
+    var body: some View {
+        Button(action: {
+            viewModel.selectChat(chat)
+        }) {
+            HStack(spacing: 12) {
+                // Avatar
+                Circle()
+                    .fill(Constants.Colors.sampleCardBackground)
+                    .frame(width: 50, height: 50)
+                    .overlay(
+                        Text(String(chat.otherParticipant?.displayName.prefix(1) ?? "?"))
+                            .font(.headline)
+                            .foregroundColor(Constants.Colors.label)
+                    )
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(chat.otherParticipant?.displayName ?? "Unknown User")
+                            .font(.headline)
+                            .foregroundColor(Constants.Colors.label)
+                            .lineLimit(1)
+                        
+                        Spacer()
+                        
+                        Text(timeAgoString(from: chat.updatedAt))
+                            .font(.caption)
+                            .foregroundColor(Constants.Colors.secondaryLabel)
+                    }
+                    
+                    if let listing = chat.listing {
+                        Text(listing.title)
+                            .font(.caption)
+                            .foregroundColor(Constants.Colors.secondaryLabel)
+                            .lineLimit(1)
+                    }
+                    
+                    if let lastMessage = chat.lastMessage {
+                        Text(lastMessage.content)
+                            .font(.subheadline)
+                            .foregroundColor(Constants.Colors.secondaryLabel)
+                            .lineLimit(2)
+                    }
+                }
+                
+                VStack(alignment: .trailing, spacing: 4) {
+                    // Unread indicator
+                    if chat.unreadCount > 0 {
+                        Circle()
+                            .fill(Color.orange)
+                            .frame(width: 20, height: 20)
+                            .overlay(
+                                Text("\(chat.unreadCount)")
+                                    .font(.caption2)
+                                    .foregroundColor(.white)
+                                    .fontWeight(.bold)
+                            )
+                    }
+                    
+                    // Pin indicator
+                    if chat.isPinned {
+                        Image(systemName: "pin.fill")
+                            .foregroundColor(.orange)
+                            .font(.caption)
+                    }
+                }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 12)
+            .background(Color(.systemBackground))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PlainButtonStyle())
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            Button(role: .destructive) {
+                viewModel.deleteChat(chat)
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+            
+            Button {
+                viewModel.togglePinChat(chat)
+            } label: {
+                Label(chat.isPinned ? "Unpin" : "Pin", systemImage: chat.isPinned ? "pin.slash" : "pin")
+            }
+            .tint(chat.isPinned ? Constants.Colors.secondaryLabel : .orange)
+        }
+        .contextMenu {
+            Button(chat.isPinned ? "Unpin" : "Pin") {
+                viewModel.togglePinChat(chat)
+            }
+            
+            Button(chat.isArchived ? "Unarchive" : "Archive") {
+                viewModel.archiveChat(chat)
+            }
+            
+            Button("Delete", role: .destructive) {
+                viewModel.deleteChat(chat)
+            }
+            
+            Divider()
+            
+            Button("Block User", role: .destructive) {
+                if let otherUserId = chat.participants.first(where: { $0 != "currentUser" }) {
+                    viewModel.blockUser(otherUserId)
+                }
+            }
+            
+            Button("Report User") {
+                // Show report sheet
+            }
+        }
+        .onLongPressGesture {
+            showChatActions = true
         }
     }
     
@@ -99,6 +320,44 @@ struct MessageRowView: View {
     }
 }
 
+// MARK: - Empty State View
+struct EmptyStateView: View {
+    let onNewMessage: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "message.circle")
+                .font(.system(size: 60))
+                .foregroundColor(Constants.Colors.secondaryLabel)
+            
+            Text("No Messages Yet")
+                .font(.title2)
+                .fontWeight(.semibold)
+                .foregroundColor(Constants.Colors.label)
+            
+            Text("Start a conversation by messaging sellers about their items or responding to buyer inquiries.")
+                .font(.body)
+                .foregroundColor(Constants.Colors.secondaryLabel)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+            
+            Button(action: onNewMessage) {
+                HStack {
+                    Image(systemName: "square.and.pencil")
+                    Text("Start New Conversation")
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(Constants.Colors.label)
+                .cornerRadius(25)
+            }
+        }
+        .padding()
+    }
+}
+
 #Preview {
     MessagesView()
+        .environmentObject(MessagingViewModel(currentUserId: "currentUser"))
 }

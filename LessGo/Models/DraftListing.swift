@@ -78,8 +78,6 @@ struct DraftListing: Identifiable, Codable {
         
         if description.isEmpty {
             errors.append("Description is required")
-        } else if description.count < 50 {
-            errors.append("Description must be at least 50 characters")
         } else if description.count > 1000 {
             errors.append("Description must be 1000 characters or less")
         }

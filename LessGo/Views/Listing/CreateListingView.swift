@@ -10,7 +10,7 @@ struct CreateListingView: View {
     
     var body: some View {
         ZStack {
-            Color.blue.ignoresSafeArea(.all)
+            Constants.Colors.background.ignoresSafeArea(.all)
             
             VStack(spacing: 0) {
                 // Header with X button
@@ -19,7 +19,7 @@ struct CreateListingView: View {
                         Image(systemName: "xmark")
                             .font(.title2)
                             .fontWeight(.medium)
-                            .foregroundColor(.white)
+                            .foregroundColor(Constants.Colors.label)
                     }
                     
                     Spacer()
@@ -28,11 +28,11 @@ struct CreateListingView: View {
                     Button("Save Draft") { 
                         Task { await viewModel.saveDraft() }
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(Constants.Colors.label)
                     .font(.subheadline)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(Color.white.opacity(0.2))
+                    .background(Constants.Colors.sampleCardBackground)
                     .cornerRadius(8)
                 }
                 .padding(.horizontal, Constants.Design.largePadding)
@@ -46,7 +46,7 @@ struct CreateListingView: View {
                         viewModel.currentStep = step
                     }
                 )
-                    .background(Color.blue)
+                    .background(Constants.Colors.background)
                 
                 // Scrollable content
                 ScrollView {
@@ -113,7 +113,7 @@ struct CreateListingView: View {
                     onPost: { Task { await viewModel.postListing() } },
                     onCancel: viewModel.resetForm
                 )
-                .background(Color.blue)
+                .background(Constants.Colors.background)
                 .shadow(radius: 2, y: -1)
             }
         }
@@ -126,12 +126,12 @@ struct CreateListingView: View {
                         .font(.title2)
                         .fontWeight(.medium)
                 }
-                .foregroundColor(.white)
+                .foregroundColor(Constants.Colors.label)
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 if viewModel.currentStep == .review {
                     Button("Preview") { viewModel.showPreview = true }
-                        .foregroundColor(.white)
+                        .foregroundColor(Constants.Colors.label)
                         .disabled(!viewModel.draftListing.canBePosted)
                 }
             }
@@ -167,9 +167,6 @@ struct CreateListingView: View {
         } message: {
             Text("Your listing has been posted successfully!")
         }
-        .overlay(
-            DraftSavedToast(isVisible: $viewModel.showDraftSaved)
-        )
     }
 }
 
@@ -228,7 +225,7 @@ struct ProgressIndicator: View {
                 ForEach(CreateListingStep.allCases, id: \.self) { step in
                     Text(step.title)
                         .font(.caption)
-                        .foregroundColor(stepColor(for: step))
+                        .foregroundColor(textColor(for: step))
                         .frame(maxWidth: .infinity)
                         .multilineTextAlignment(.center)
                         .onTapGesture {
@@ -246,9 +243,9 @@ struct ProgressIndicator: View {
         if step.rawValue < currentStep.rawValue {
             return .green
         } else if step.rawValue == currentStep.rawValue {
-            return .blue
+            return Constants.Colors.label
         } else {
-            return.white.opacity(0.9)
+            return Constants.Colors.separator
         }
     }
     
@@ -256,9 +253,9 @@ struct ProgressIndicator: View {
         if step.rawValue < currentStep.rawValue {
             return .green
         } else if step.rawValue == currentStep.rawValue {
-            return .black
+            return Constants.Colors.label
         } else {
-            return.white.opacity(0.9)
+            return Constants.Colors.secondaryLabel
         }
     }
     
@@ -266,7 +263,7 @@ struct ProgressIndicator: View {
         if completedSteps.contains(first) && completedSteps.contains(second) {
             return .green
         } else {
-            return Color.gray.opacity(0.3)
+            return Constants.Colors.separator
         }
     }
 }
@@ -314,7 +311,7 @@ struct BottomActionBar: View {
             
             if isLoading {
                 ProgressView("Posting...")
-                    .foregroundColor(.white)
+                    .foregroundColor(Constants.Colors.label)
                     .padding(.bottom)
             }
         }
@@ -324,32 +321,7 @@ struct BottomActionBar: View {
     }
 }
 
-// MARK: - Draft Saved Toast
-struct DraftSavedToast: View {
-    @Binding var isVisible: Bool
-    
-    var body: some View {
-        if isVisible {
-            VStack {
-                Spacer()
-                HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                    Text("Draft saved automatically")
-                        .font(.caption)
-                        .foregroundColor(.white)
-                }
-                .padding()
-                .background(Color.blue.opacity(0.9))
-                .cornerRadius(8)
-                .shadow(radius: 4)
-                .padding()
-            }
-            .transition(.move(edge: .bottom))
-            .animation(.easeInOut(duration: 0.3), value: isVisible)
-        }
-    }
-}
+
 
 #Preview {
     CreateListingView(dismissAction: {})

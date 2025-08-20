@@ -9,18 +9,20 @@ struct LocationView: View {
     
     @State private var selectedDeliveryRadius: Double = 0
     @State private var showCurrentLocation = false
+    @State private var showAddressInput = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             // Header
             VStack(alignment: .leading, spacing: 8) {
-                Text("Location & Delivery")
+                Text("Location")
                     .font(.title2)
                     .fontWeight(.semibold)
+                    .foregroundColor(Constants.Colors.label)
                 
                 Text("Set where buyers can pick up your item or how far you're willing to deliver.")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Constants.Colors.secondaryLabel)
             }
             
             // Current Location
@@ -28,105 +30,18 @@ struct LocationView: View {
                 Text("Pickup Location")
                     .font(.headline)
                     .fontWeight(.medium)
+                    .foregroundColor(Constants.Colors.label)
                 
                 if let location = draftListing.location {
                     LocationDisplayView(location: location) {
-                        showLocationPicker = true
+                        showAddressInput = true
                     }
                 } else {
                     EmptyLocationView(
                         onSelectLocation: { showLocationPicker = true },
-                        onUseCurrentLocation: { useCurrentLocation() }
+                        onUseCurrentLocation: { useCurrentLocation() },
+                        onInputAddress: { showAddressInput = true }
                     )
-                }
-            }
-            
-            // Delivery Options
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Delivery Options")
-                    .font(.headline)
-                    .fontWeight(.medium)
-                
-                VStack(spacing: 16) {
-                    // Pickup only option
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Image(systemName: "location.circle.fill")
-                                .foregroundColor(.blue)
-                            Text("Pickup Only")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                            Spacer()
-                        }
-                        
-                        Text("Buyers must come to your location to get the item")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding()
-                    .background(draftListing.pickupOnly ? Color.blue.opacity(0.1) : Color.white.opacity(0.9))
-                    .cornerRadius(8)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(draftListing.pickupOnly ? Color.blue : Color.clear, lineWidth: 2)
-                    )
-                    
-                    // Delivery option
-                    if !draftListing.pickupOnly {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Image(systemName: "car.fill")
-                                    .foregroundColor(.green)
-                                Text("Delivery Available")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                Spacer()
-                            }
-                            
-                            Text("You can deliver the item to buyers within your radius")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            
-                            if draftListing.shippingAvailable {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text("Delivery Radius")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                    
-                                    HStack {
-                                        Slider(
-                                            value: $selectedDeliveryRadius,
-                                            in: 0...50,
-                                            step: 1
-                                        ) { editing in
-                                            if !editing {
-                                                onUpdateDeliveryRadius(selectedDeliveryRadius)
-                                            }
-                                        }
-                                        
-                                        Text("\(Int(selectedDeliveryRadius)) mi")
-                                            .font(.subheadline)
-                                            .fontWeight(.medium)
-                                            .frame(minWidth: 50)
-                                    }
-                                    
-                                    Text("Maximum distance you're willing to travel for delivery")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                .padding()
-                                .background(Color.white.opacity(0.9))
-                                .cornerRadius(8)
-                            }
-                        }
-                        .padding()
-                        .background(Color.green.opacity(0.1))
-                        .cornerRadius(8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.green, lineWidth: 2)
-                        )
-                    }
                 }
             }
             
@@ -138,6 +53,12 @@ struct LocationView: View {
             if let radius = draftListing.deliveryRadius {
                 selectedDeliveryRadius = radius
             }
+        }
+        .sheet(isPresented: $showAddressInput) {
+            AddressInputView(
+                draftListing: $draftListing,
+                onUpdateLocation: onUpdateLocation
+            )
         }
     }
     
@@ -171,13 +92,25 @@ struct LocationDisplayView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(location.address ?? "Unknown Address")
+                    Text(location.displayLocation())
                         .font(.subheadline)
                         .fontWeight(.medium)
+                        .foregroundColor(Constants.Colors.label)
                     
-                    Text("\(location.city), \(location.state) \(location.zipCode)")
+                    if let meetingInstructions = location.meetingInstructions, !meetingInstructions.isEmpty {
+                        Text(meetingInstructions)
+                            .font(.caption)
+                            .foregroundColor(Constants.Colors.secondaryLabel)
+                            .italic()
+                    }
+                    
+                    Text(location.locationType.displayName)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Constants.Colors.secondaryLabel)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(Constants.Colors.sampleCardBackground)
+                        .cornerRadius(4)
                 }
                 
                 Spacer()
@@ -188,11 +121,13 @@ struct LocationDisplayView: View {
                 .buttonStyle(.bordered)
             }
             
-            // Simple map preview (in real app, this would show an actual map)
-            MapPreviewView(location: location)
+            // Map preview only for locations with coordinates
+            if location.hasCoordinates {
+                MapPreviewView(location: location)
+            }
         }
         .padding()
-        .background(Color.white.opacity(0.9))
+        .background(Constants.Colors.sampleCardBackground)
         .cornerRadius(8)
     }
 }
@@ -201,16 +136,17 @@ struct LocationDisplayView: View {
 struct EmptyLocationView: View {
     let onSelectLocation: () -> Void
     let onUseCurrentLocation: () -> Void
+    let onInputAddress: () -> Void
     
     var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "location.circle")
                 .font(.system(size: 50))
-                .foregroundColor(.gray)
+                .foregroundColor(Constants.Colors.secondaryLabel)
             
             Text("No location set")
                 .font(.headline)
-                .foregroundColor(.secondary)
+                .foregroundColor(Constants.Colors.secondaryLabel)
             
             VStack(spacing: 12) {
                 Button(action: onUseCurrentLocation) {
@@ -220,7 +156,19 @@ struct EmptyLocationView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
+                    .background(Constants.Colors.label)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+                }
+                
+                Button(action: onInputAddress) {
+                    HStack {
+                        Image(systemName: "pencil.circle")
+                        Text("Input Address")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(.green)
                     .foregroundColor(.white)
                     .cornerRadius(8)
                 }
@@ -228,18 +176,18 @@ struct EmptyLocationView: View {
                 Button(action: onSelectLocation) {
                     HStack {
                         Image(systemName: "mappin.and.ellipse")
-                        Text("Select Location")
+                        Text("Select on Map")
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.white.opacity(0.8))
-                    .foregroundColor(.primary)
+                    .background(Constants.Colors.sampleCardBackground)
+                    .foregroundColor(Constants.Colors.label)
                     .cornerRadius(8)
                 }
             }
         }
         .padding(40)
-        .background(Color.white.opacity(0.9))
+        .background(Constants.Colors.sampleCardBackground)
         .cornerRadius(12)
     }
 }
@@ -251,7 +199,7 @@ struct MapPreviewView: View {
     var body: some View {
         ZStack {
             Rectangle()
-                .fill(Color.white.opacity(0.8))
+                .fill(Constants.Colors.sampleCardBackground)
                 .frame(height: 120)
                 .cornerRadius(8)
             
@@ -262,12 +210,12 @@ struct MapPreviewView: View {
                 
                 Text("Map Preview")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Constants.Colors.secondaryLabel)
             }
         }
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.white.opacity(0.7), lineWidth: 1)
+                .stroke(Constants.Colors.separator, lineWidth: 1)
         )
     }
 }
@@ -279,16 +227,18 @@ struct LocationTipsView: View {
             Text("Location Tips")
                 .font(.headline)
                 .fontWeight(.medium)
+                .foregroundColor(Constants.Colors.label)
             
             VStack(alignment: .leading, spacing: 8) {
                 TipRow(icon: "location.fill", text: "Choose a safe, public meeting spot")
                 TipRow(icon: "clock.fill", text: "Consider your availability for meetups")
                 TipRow(icon: "car.fill", text: "Set realistic delivery radius")
                 TipRow(icon: "exclamationmark.triangle.fill", text: "Never share your exact home address")
+                TipRow(icon: "text.bubble", text: "Add clear meeting instructions for buyers")
             }
         }
         .padding()
-        .background(Color.white.opacity(0.9))
+        .background(Constants.Colors.sampleCardBackground)
         .cornerRadius(12)
     }
 }

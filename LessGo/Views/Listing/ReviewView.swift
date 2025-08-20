@@ -11,10 +11,11 @@ struct ReviewView: View {
                 Text("Review Your Listing")
                     .font(.title2)
                     .fontWeight(.semibold)
+                    .foregroundColor(Constants.Colors.label)
                 
                 Text("Review all the details before posting. Make sure everything looks correct!")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Constants.Colors.secondaryLabel)
             }
             
             ScrollView {
@@ -35,10 +36,10 @@ struct ReviewView: View {
                     ValidationSummaryView(draftListing: draftListing)
                 }
             }
-            .background(Color.blue)
+            .background(Constants.Colors.background)
         }
         .padding(.horizontal, Constants.Design.largePadding)
-        .background(Color.blue)
+        .background(Constants.Colors.background)
     }
 }
 
@@ -52,7 +53,7 @@ struct PhotosReviewSection: View {
             
             if selectedImages.isEmpty {
                 Text("No photos added")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Constants.Colors.secondaryLabel)
                     .italic()
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -70,7 +71,7 @@ struct PhotosReviewSection: View {
                                     Text("Main")
                                         .font(.caption2)
                                         .fontWeight(.bold)
-                                        .foregroundColor(.blue)
+                                        .foregroundColor(Constants.Colors.label)
                                 }
                             }
                         }
@@ -80,11 +81,11 @@ struct PhotosReviewSection: View {
                 
                 Text("\(selectedImages.count) photo(s) • First photo will be the main image")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Constants.Colors.secondaryLabel)
             }
         }
         .padding()
-        .background(Color.white.opacity(0.9))
+        .background(Constants.Colors.sampleCardBackground)
         .cornerRadius(12)
     }
 }
@@ -106,7 +107,7 @@ struct BasicInfoReviewSection: View {
             }
         }
         .padding()
-        .background(Color.white.opacity(0.9))
+        .background(Constants.Colors.sampleCardBackground)
         .cornerRadius(12)
     }
 }
@@ -146,7 +147,7 @@ struct DetailsReviewSection: View {
             }
         }
         .padding()
-        .background(Color.white.opacity(0.9))
+        .background(Constants.Colors.sampleCardBackground)
         .cornerRadius(12)
     }
 }
@@ -162,7 +163,7 @@ struct LocationReviewSection: View {
             VStack(spacing: 12) {
                 if let location = draftListing.location {
                     ReviewRow(label: "Address", value: location.address ?? "Unknown Address", isMultiline: true)
-                    ReviewRow(label: "City", value: "\(location.city), \(location.state) \(location.zipCode)")
+                    ReviewRow(label: "City", value: "\(location.city ?? "Unknown"), \(location.state ?? "Unknown") \(location.zipCode ?? "")")
                 } else {
                     ReviewRow(label: "Location", value: "Not set", isMultiline: true)
                 }
@@ -173,7 +174,7 @@ struct LocationReviewSection: View {
             }
         }
         .padding()
-        .background(Color.white.opacity(0.9))
+        .background(Constants.Colors.sampleCardBackground)
         .cornerRadius(12)
     }
 }
@@ -200,7 +201,7 @@ struct ValidationSummaryView: View {
                     
                     Text("Your listing is ready to be posted. Review the details above and click 'Post Listing' when you're satisfied.")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Constants.Colors.secondaryLabel)
                 }
             } else {
                 VStack(alignment: .leading, spacing: 8) {
@@ -229,7 +230,7 @@ struct ValidationSummaryView: View {
                     
                     Text("Please go back and complete these fields before posting.")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Constants.Colors.secondaryLabel)
                 }
             }
         }
@@ -251,12 +252,13 @@ struct SectionHeader: View {
     var body: some View {
         HStack {
             Image(systemName: icon)
-                .foregroundColor(.blue)
+                .foregroundColor(Constants.Colors.label)
                 .font(.title3)
             
             Text(title)
                 .font(.headline)
                 .fontWeight(.semibold)
+                .foregroundColor(Constants.Colors.label)
             
             Spacer()
         }
@@ -274,12 +276,12 @@ struct ReviewRow: View {
             Text(label)
                 .font(.caption)
                 .fontWeight(.medium)
-                .foregroundColor(.secondary)
+                .foregroundColor(Constants.Colors.secondaryLabel)
                 .textCase(.uppercase)
             
             Text(value)
                 .font(.subheadline)
-                .foregroundColor(.primary)
+                .foregroundColor(Constants.Colors.label)
                 .multilineTextAlignment(.leading)
                 .lineLimit(isMultiline ? nil : 1)
         }

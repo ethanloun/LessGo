@@ -7,12 +7,12 @@ struct TipRow: View {
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
-                .foregroundColor(.blue)
+                .foregroundColor(Constants.Colors.secondaryLabel)
                 .frame(width: 16)
             
             Text(text)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(Constants.Colors.secondaryLabel)
             
             Spacer()
         }

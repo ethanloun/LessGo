@@ -12,30 +12,13 @@ class CreateListingViewModel: ObservableObject {
     @Published var errorMessage: String = ""
     @Published var showSuccess: Bool = false
     @Published var showPreview: Bool = false
-    @Published var showDraftSaved: Bool = false
     @Published var currentStep: CreateListingStep = .photos
     // MARK: - Private Properties
     private var cancellables = Set<AnyCancellable>()
-    private let autoSaveInterval: TimeInterval = 30.0 // 30 seconds
-    private var autoSaveTimer: Timer?
     
     // MARK: - Initialization
     init(sellerId: String) {
         self.draftListing = DraftListing(id: UUID().uuidString, sellerId: sellerId)
-        setupAutoSave()
-    }
-    
-    deinit {
-        autoSaveTimer?.invalidate()
-    }
-    
-    // MARK: - Setup
-    private func setupAutoSave() {
-        autoSaveTimer = Timer.scheduledTimer(withTimeInterval: autoSaveInterval, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                await self?.saveDraft()
-            }
-        }
     }
     
     // MARK: - Photo Management
@@ -58,6 +41,11 @@ class CreateListingViewModel: ObservableObject {
         
         // Force UI update by triggering objectWillChange
         objectWillChange.send()
+        
+        // Auto-save draft in background without showing popup
+        Task {
+            await saveDraftSilently()
+        }
     }
     
     func removeImage(at index: Int) {
@@ -81,6 +69,11 @@ class CreateListingViewModel: ObservableObject {
         
         // Force UI update by triggering objectWillChange
         objectWillChange.send()
+        
+        // Auto-save draft in background without showing popup
+        Task {
+            await saveDraftSilently()
+        }
     }
     
     func moveImage(from source: IndexSet, to destination: Int) {
@@ -89,67 +82,132 @@ class CreateListingViewModel: ObservableObject {
         
         // Force UI update by triggering objectWillChange
         objectWillChange.send()
+        
+        // Auto-save draft in background without showing popup
+        Task {
+            await saveDraftSilently()
+        }
     }
     
     // MARK: - Form Updates
     func updateTitle(_ title: String) {
         draftListing.title = title
         draftListing.updatedAt = Date()
+        
+        // Auto-save draft in background without showing popup
+        Task {
+            await saveDraftSilently()
+        }
     }
     
     func updateDescription(_ description: String) {
         draftListing.description = description
         draftListing.updatedAt = Date()
+        
+        // Auto-save draft in background without showing popup
+        Task {
+            await saveDraftSilently()
+        }
     }
     
     func updatePrice(_ price: Double) {
         draftListing.price = price
         draftListing.updatedAt = Date()
+        
+        // Auto-save draft in background without showing popup
+        Task {
+            await saveDraftSilently()
+        }
     }
     
     func updateCategory(_ category: Category) {
         draftListing.category = category
         draftListing.updatedAt = Date()
+        
+        // Auto-save draft in background without showing popup
+        Task {
+            await saveDraftSilently()
+        }
     }
     
     func updateCondition(_ condition: ItemCondition) {
         draftListing.condition = condition
         draftListing.updatedAt = Date()
+        
+        // Auto-save draft in background without showing popup
+        Task {
+            await saveDraftSilently()
+        }
     }
     
     func updateQuantity(_ quantity: Int) {
         draftListing.quantity = max(1, quantity)
         draftListing.updatedAt = Date()
+        
+        // Auto-save draft in background without showing popup
+        Task {
+            await saveDraftSilently()
+        }
     }
     
     func updateBrand(_ brand: String) {
         draftListing.brand = brand.isEmpty ? nil : brand
         draftListing.updatedAt = Date()
+        
+        // Auto-save draft in background without showing popup
+        Task {
+            await saveDraftSilently()
+        }
     }
     
     func updateModel(_ model: String) {
         draftListing.model = model.isEmpty ? nil : model
         draftListing.updatedAt = Date()
+        
+        // Auto-save draft in background without showing popup
+        Task {
+            await saveDraftSilently()
+        }
     }
     
     func updateLocation(_ location: Location) {
         draftListing.location = location
         draftListing.updatedAt = Date()
+        
+        // Auto-save draft in background without showing popup
+        Task {
+            await saveDraftSilently()
+        }
     }
     
     func updateDeliveryRadius(_ radius: Double?) {
         draftListing.deliveryRadius = radius
         draftListing.updatedAt = Date()
+        
+        // Auto-save draft in background without showing popup
+        Task {
+            await saveDraftSilently()
+        }
     }
     
     func updateTags(_ tags: [String]) {
         draftListing.tags = Array(Set(tags)).prefix(10).map { $0 } // Remove duplicates, max 10
         draftListing.updatedAt = Date()
+        
+        // Auto-save draft in background without showing popup
+        Task {
+            await saveDraftSilently()
+        }
     }
     
     func toggleNegotiable() {
         draftListing.isNegotiable.toggle()
         draftListing.updatedAt = Date()
+        
+        // Auto-save draft in background without showing popup
+        Task {
+            await saveDraftSilently()
+        }
     }
     
     func togglePickupOnly() {
@@ -159,6 +217,11 @@ class CreateListingViewModel: ObservableObject {
             draftListing.shippingCost = nil
         }
         draftListing.updatedAt = Date()
+        
+        // Auto-save draft in background without showing popup
+        Task {
+            await saveDraftSilently()
+        }
     }
     
     func toggleShippingAvailable() {
@@ -167,11 +230,21 @@ class CreateListingViewModel: ObservableObject {
             draftListing.shippingCost = nil
         }
         draftListing.updatedAt = Date()
+        
+        // Auto-save draft in background without showing popup
+        Task {
+            await saveDraftSilently()
+        }
     }
     
     func updateShippingCost(_ cost: Double?) {
         draftListing.shippingCost = cost
         draftListing.updatedAt = Date()
+        
+        // Auto-save draft in background without showing popup
+        Task {
+            await saveDraftSilently()
+        }
     }
     
     // MARK: - Navigation
@@ -226,9 +299,6 @@ class CreateListingViewModel: ObservableObject {
         if draftListing.description.isEmpty {
             return false
         }
-        if draftListing.description.count < 50 {
-            return false
-        }
         if draftListing.price <= 0 {
             return false
         }
@@ -252,10 +322,6 @@ class CreateListingViewModel: ObservableObject {
         }
         if draftListing.description.isEmpty {
             showError(message: "Please enter a description")
-            return false
-        }
-        if draftListing.description.count < 50 {
-            showError(message: "Description must be at least 50 characters")
             return false
         }
         if draftListing.price <= 0 {
@@ -362,14 +428,23 @@ class CreateListingViewModel: ObservableObject {
         do {
             // In real app, save to local storage or backend
             try await Task.sleep(nanoseconds: 500_000_000) // Simulate API call
-            showDraftSaved = true
-            
-            // Hide success message after 3 seconds
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                self.showDraftSaved = false
-            }
+            // No popup shown for manual save
         } catch {
             showError(message: "Failed to save draft: \(error.localizedDescription)")
+        }
+    }
+    
+    // Silent auto-save without popup
+    private func saveDraftSilently() async {
+        guard !draftListing.title.isEmpty else { return }
+        
+        do {
+            // In real app, save to local storage or backend
+            try await Task.sleep(nanoseconds: 500_000_000) // Simulate API call
+            // No popup shown for auto-save
+        } catch {
+            // Silent fail for auto-save
+            print("Auto-save failed: \(error.localizedDescription)")
         }
     }
     

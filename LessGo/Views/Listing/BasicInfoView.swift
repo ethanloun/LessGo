@@ -19,10 +19,11 @@ struct BasicInfoView: View {
                 Text("Basic Information")
                     .font(.title2)
                     .fontWeight(.semibold)
+                    .foregroundColor(Constants.Colors.label)
                 
                 Text("Provide the essential details about your item.")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Constants.Colors.secondaryLabel)
             }
             
             // Title
@@ -31,12 +32,13 @@ struct BasicInfoView: View {
                     Text("Title")
                         .font(.headline)
                         .fontWeight(.medium)
+                        .foregroundColor(Constants.Colors.label)
                     
                     Spacer()
                     
                     Text("\(draftListing.title.count)/60")
                         .font(.caption)
-                        .foregroundColor(draftListing.title.count > 50 ? .orange : .secondary)
+                        .foregroundColor(draftListing.title.count > 50 ? .orange : Constants.Colors.secondaryLabel)
                 }
                 
                 TextField("Enter a descriptive title", text: $draftListing.title)
@@ -61,28 +63,29 @@ struct BasicInfoView: View {
                 Text("Category")
                     .font(.headline)
                     .fontWeight(.medium)
+                    .foregroundColor(Constants.Colors.label)
                 
                 Button(action: { showCategoryPicker = true }) {
                     HStack {
                         if let category = draftListing.category {
                             HStack {
                                 Image(systemName: category.iconName)
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(Constants.Colors.label)
                                 Text(category.displayName)
-                                    .foregroundColor(.primary)
+                                    .foregroundColor(Constants.Colors.label)
                             }
                         } else {
                             Text("Select a category")
-                                .foregroundColor(.secondary)
+                                .foregroundColor(Constants.Colors.secondaryLabel)
                         }
                         
                         Spacer()
                         
                         Image(systemName: "chevron.right")
-                            .foregroundColor(.secondary)
+                            .foregroundColor(Constants.Colors.secondaryLabel)
                     }
                     .padding()
-                    .background(Color.white.opacity(0.9))
+                    .background(Constants.Colors.sampleCardBackground)
                     .cornerRadius(8)
                 }
             }
@@ -92,6 +95,7 @@ struct BasicInfoView: View {
                 Text("Item Condition")
                     .font(.headline)
                     .fontWeight(.medium)
+                    .foregroundColor(Constants.Colors.label)
                 
                 Button(action: { showConditionPicker = true }) {
                     HStack {
@@ -101,20 +105,20 @@ struct BasicInfoView: View {
                                     .fill(Color(condition.color))
                                     .frame(width: 12, height: 12)
                                 Text(condition.displayName)
-                                    .foregroundColor(.primary)
+                                    .foregroundColor(Constants.Colors.label)
                             }
                         } else {
                             Text("Select condition")
-                                .foregroundColor(.secondary)
+                                .foregroundColor(Constants.Colors.secondaryLabel)
                         }
                         
                         Spacer()
                         
                         Image(systemName: "chevron.right")
-                            .foregroundColor(.secondary)
+                            .foregroundColor(Constants.Colors.secondaryLabel)
                     }
                     .padding()
-                    .background(Color.white.opacity(0.9))
+                    .background(Constants.Colors.sampleCardBackground)
                     .cornerRadius(8)
                 }
             }
@@ -124,11 +128,12 @@ struct BasicInfoView: View {
                 Text("Price")
                     .font(.headline)
                     .fontWeight(.medium)
+                    .foregroundColor(Constants.Colors.label)
                 
                 HStack {
                     Text("$")
                         .font(.title2)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Constants.Colors.secondaryLabel)
                     
                     TextField("0.00", text: $priceText)
                         .textFieldStyle(.roundedBorder)
@@ -145,7 +150,7 @@ struct BasicInfoView: View {
                 
                 Text("Set a fair price to attract buyers")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Constants.Colors.secondaryLabel)
             }
             
             // Description
@@ -154,18 +159,19 @@ struct BasicInfoView: View {
                     Text("Description")
                         .font(.headline)
                         .fontWeight(.medium)
+                        .foregroundColor(Constants.Colors.label)
                     
                     Spacer()
                     
                     Text("\(draftListing.description.count)/1000")
                         .font(.caption)
-                        .foregroundColor(draftListing.description.count > 900 ? .orange : .secondary)
+                        .foregroundColor(draftListing.description.count > 900 ? .orange : Constants.Colors.secondaryLabel)
                 }
                 
                 TextEditor(text: $draftListing.description)
                     .frame(minHeight: 120)
                     .padding(8)
-                    .background(Color.white.opacity(0.9))
+                    .background(Constants.Colors.sampleCardBackground)
                     .cornerRadius(8)
                     .onChange(of: draftListing.description) { newValue in
                         if newValue.count <= 1000 {
@@ -175,11 +181,7 @@ struct BasicInfoView: View {
                         }
                     }
                 
-                if draftListing.description.count < 50 {
-                    Text("Add more details to help buyers understand your item")
-                        .font(.caption)
-                        .foregroundColor(.orange)
-                } else if draftListing.description.count > 900 {
+                if draftListing.description.count > 900 {
                     Text("Description is getting long. Consider being more concise.")
                         .font(.caption)
                         .foregroundColor(.orange)
@@ -221,17 +223,17 @@ struct CategoryPickerView: View {
                 }) {
                     HStack {
                         Image(systemName: category.iconName)
-                            .foregroundColor(.blue)
+                            .foregroundColor(Constants.Colors.label)
                             .frame(width: 24)
                         
                         Text(category.displayName)
-                            .foregroundColor(.primary)
+                            .foregroundColor(Constants.Colors.label)
                         
                         Spacer()
                         
                         if selectedCategory == category {
                             Image(systemName: "checkmark")
-                                .foregroundColor(.blue)
+                                .foregroundColor(Constants.Colors.label)
                         }
                     }
                 }
@@ -269,13 +271,13 @@ struct ConditionPickerView: View {
                             .frame(width: 16, height: 16)
                         
                         Text(condition.displayName)
-                            .foregroundColor(.primary)
+                            .foregroundColor(Constants.Colors.label)
                         
                         Spacer()
                         
                         if selectedCondition == condition {
                             Image(systemName: "checkmark")
-                                .foregroundColor(.blue)
+                                .foregroundColor(Constants.Colors.label)
                         }
                     }
                 }
@@ -300,7 +302,7 @@ struct DescriptionTipsView: View {
             Text("Description Tips")
                 .font(.caption)
                 .fontWeight(.medium)
-                .foregroundColor(.secondary)
+                .foregroundColor(Constants.Colors.secondaryLabel)
             
             VStack(alignment: .leading, spacing: 4) {
                 TipRow(icon: "checkmark.circle", text: "Include dimensions, materials, and brand")
@@ -310,7 +312,7 @@ struct DescriptionTipsView: View {
             }
         }
         .padding()
-        .background(Color.white.opacity(0.9))
+        .background(Constants.Colors.sampleCardBackground)
         .cornerRadius(8)
     }
 }

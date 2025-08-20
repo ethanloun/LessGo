@@ -13,7 +13,6 @@ struct ContentView: View {
     var body: some View {
         MainTabView()
             .environmentObject(authViewModel)
-            .background(Color.blue)
     }
 }
 

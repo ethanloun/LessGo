@@ -8,7 +8,7 @@ struct ListingPreviewView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.blue.ignoresSafeArea(.all)
+                Constants.Colors.background.ignoresSafeArea(.all)
                 ScrollView {
                 VStack(spacing: 0) {
                     // Photos
@@ -23,12 +23,13 @@ struct ListingPreviewView: View {
                             Text(draftListing.title.isEmpty ? "Your Title Here" : draftListing.title)
                                 .font(.title2)
                                 .fontWeight(.bold)
+                                .foregroundColor(Constants.Colors.label)
                             
                             HStack {
                                 Text(String(format: "$%.2f", draftListing.price))
                                     .font(.title)
                                     .fontWeight(.bold)
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(Constants.Colors.label)
                                 
                                 if draftListing.isNegotiable {
                                     Text("Negotiable")
@@ -49,9 +50,10 @@ struct ListingPreviewView: View {
                             if let category = draftListing.category {
                                 HStack {
                                     Image(systemName: category.iconName)
-                                        .foregroundColor(.blue)
+                                        .foregroundColor(Constants.Colors.label)
                                     Text(category.displayName)
                                         .font(.subheadline)
+                                        .foregroundColor(Constants.Colors.label)
                                 }
                             }
                             
@@ -62,12 +64,13 @@ struct ListingPreviewView: View {
                                         .frame(width: 12, height: 12)
                                     Text(condition.displayName)
                                         .font(.subheadline)
+                                        .foregroundColor(Constants.Colors.label)
                                 }
                             }
                             
                             Spacer()
                         }
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Constants.Colors.secondaryLabel)
                         
                         // Description
                         if !draftListing.description.isEmpty {
@@ -75,9 +78,11 @@ struct ListingPreviewView: View {
                                 Text("Description")
                                     .font(.headline)
                                     .fontWeight(.semibold)
+                                    .foregroundColor(Constants.Colors.label)
                                 
                                 Text(draftListing.description)
                                     .font(.body)
+                                    .foregroundColor(Constants.Colors.label)
                                     .lineSpacing(4)
                             }
                         }
@@ -88,6 +93,7 @@ struct ListingPreviewView: View {
                                 Text("Details")
                                     .font(.headline)
                                     .fontWeight(.semibold)
+                                    .foregroundColor(Constants.Colors.label)
                                 
                                 VStack(spacing: 8) {
                                     if let brand = draftListing.brand, !brand.isEmpty {
@@ -113,6 +119,7 @@ struct ListingPreviewView: View {
                                 Text("Location")
                                     .font(.headline)
                                     .fontWeight(.semibold)
+                                    .foregroundColor(Constants.Colors.label)
                                 
                                 HStack {
                                     Image(systemName: "location.circle.fill")
@@ -121,9 +128,10 @@ struct ListingPreviewView: View {
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(location.address ?? "Unknown Address")
                                             .font(.subheadline)
-                                        Text("\(location.city), \(location.state) \(location.zipCode)")
+                                            .foregroundColor(Constants.Colors.label)
+                                        Text("\(location.city ?? "Unknown"), \(location.state ?? "Unknown") \(location.zipCode ?? "")")
                                             .font(.caption)
-                                            .foregroundColor(.secondary)
+                                            .foregroundColor(Constants.Colors.secondaryLabel)
                                     }
                                     
                                     Spacer()
@@ -136,14 +144,16 @@ struct ListingPreviewView: View {
                             Text("Shipping & Pickup")
                                 .font(.headline)
                                 .fontWeight(.semibold)
+                                .foregroundColor(Constants.Colors.label)
                             
                             VStack(spacing: 8) {
                                 if draftListing.pickupOnly {
                                     HStack {
                                         Image(systemName: "location.circle.fill")
-                                            .foregroundColor(.blue)
+                                            .foregroundColor(Constants.Colors.label)
                                         Text("Pickup only")
                                             .font(.subheadline)
+                                            .foregroundColor(Constants.Colors.label)
                                         Spacer()
                                     }
                                 } else if draftListing.shippingAvailable {
@@ -152,6 +162,7 @@ struct ListingPreviewView: View {
                                             .foregroundColor(.green)
                                         Text("Delivery available")
                                             .font(.subheadline)
+                                            .foregroundColor(Constants.Colors.label)
                                         Spacer()
                                     }
                                     
@@ -159,10 +170,11 @@ struct ListingPreviewView: View {
                                         HStack {
                                             Text("Shipping cost:")
                                                 .font(.subheadline)
-                                                .foregroundColor(.secondary)
+                                                .foregroundColor(Constants.Colors.secondaryLabel)
                                             Text(String(format: "$%.2f", shippingCost))
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
+                                                .foregroundColor(Constants.Colors.label)
                                             Spacer()
                                         }
                                     }
@@ -171,10 +183,11 @@ struct ListingPreviewView: View {
                                         HStack {
                                             Text("Delivery radius:")
                                                 .font(.subheadline)
-                                                .foregroundColor(.secondary)
+                                                .foregroundColor(Constants.Colors.secondaryLabel)
                                             Text("\(Int(deliveryRadius)) miles")
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
+                                                .foregroundColor(Constants.Colors.label)
                                             Spacer()
                                         }
                                     }
@@ -187,19 +200,21 @@ struct ListingPreviewView: View {
                             Text("Seller")
                                 .font(.headline)
                                 .fontWeight(.semibold)
+                                .foregroundColor(Constants.Colors.label)
                             
                             HStack {
                                 Image(systemName: "person.circle.fill")
                                     .font(.title2)
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(Constants.Colors.label)
                                 
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("Your Name")
                                         .font(.subheadline)
                                         .fontWeight(.medium)
+                                        .foregroundColor(Constants.Colors.label)
                                     Text("Member since 2024")
                                         .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(Constants.Colors.secondaryLabel)
                                 }
                                 
                                 Spacer()
@@ -208,7 +223,7 @@ struct ListingPreviewView: View {
                     }
                     .padding()
                 }
-                .background(Color.blue)
+                .background(Constants.Colors.background)
             }
             }
             .navigationTitle("Preview")
@@ -267,12 +282,13 @@ struct DetailRow: View {
         HStack {
             Text(label)
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundColor(Constants.Colors.secondaryLabel)
                 .frame(width: 80, alignment: .leading)
             
             Text(value)
                 .font(.subheadline)
                 .fontWeight(.medium)
+                .foregroundColor(Constants.Colors.label)
             
             Spacer()
         }

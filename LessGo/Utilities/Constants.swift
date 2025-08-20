@@ -36,18 +36,20 @@ struct Constants {
     
     // MARK: - Colors
     struct Colors {
-        static let primary = Color("AccentColor")
-        static let secondary = Color.blue
+        static let primary = Color.black
+        static let secondary = Color(.systemGray2)
         static let success = Color.green
         static let warning = Color.orange
         static let error = Color.red
-        static let background = Color(.systemBackground)
-        static let secondaryBackground = Color(.secondarySystemBackground)
-        static let tertiaryBackground = Color(.tertiarySystemBackground)
-        static let label = Color(.label)
-        static let secondaryLabel = Color(.secondaryLabel)
-        static let tertiaryLabel = Color(.tertiaryLabel)
-        static let separator = Color(.separator)
+        static let background = Color.white
+        static let secondaryBackground = Color.white
+        static let tertiaryBackground = Color.white
+        static let label = Color.black
+        static let secondaryLabel = Color(.systemGray)
+        static let tertiaryLabel = Color(.systemGray2)
+        static let separator = Color(.systemGray4)
+        static let cardBackground = Color.white
+        static let sampleCardBackground = Color.white
     }
     
     // MARK: - API Configuration

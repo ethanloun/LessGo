@@ -16,10 +16,11 @@ struct PhotoUploadView: View {
                 Text("Photos")
                     .font(.title2)
                     .fontWeight(.semibold)
+                    .foregroundColor(Constants.Colors.label)
                 
                 Text("Add up to 10 clear photos of your item. The first photo will be the main image.")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Constants.Colors.secondaryLabel)
             }
             
             // Photo grid
@@ -49,7 +50,7 @@ struct PhotoUploadView: View {
             } else {
                 Text("Minimum: 1 photo required")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Constants.Colors.secondaryLabel)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
@@ -66,11 +67,11 @@ struct EmptyPhotoState: View {
         VStack(spacing: 12) {
             Image(systemName: "photo.on.rectangle.angled")
                 .font(.system(size: 50))
-                .foregroundColor(.gray)
+                .foregroundColor(Constants.Colors.secondaryLabel)
             
             Text("No photos yet")
                 .font(.headline)
-                .foregroundColor(.secondary)
+                .foregroundColor(Constants.Colors.secondaryLabel)
             
             VStack(spacing: 8) {
                 Button(action: onTakePhoto) {
@@ -81,7 +82,7 @@ struct EmptyPhotoState: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .padding(.horizontal, 16)
-                    .background(Color.blue)
+                    .background(Constants.Colors.label)
                     .foregroundColor(.white)
                     .cornerRadius(8)
                 }
@@ -94,14 +95,14 @@ struct EmptyPhotoState: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .padding(.horizontal, 16)
-                    .background(Color.white.opacity(0.8))
-                    .foregroundColor(.primary)
+                    .background(Constants.Colors.sampleCardBackground)
+                    .foregroundColor(Constants.Colors.label)
                     .cornerRadius(8)
                 }
             }
         }
         .padding(16)
-        .background(Color.white.opacity(0.9))
+        .background(Constants.Colors.sampleCardBackground)
         .cornerRadius(12)
     }
 }
@@ -123,7 +124,7 @@ struct PhotoGridView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("\(selectedImages.count)/10 photos")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(Constants.Colors.secondaryLabel)
             
             LazyVGrid(columns: columns, spacing: 6) {
                 ForEach(Array(selectedImages.enumerated()), id: \.offset) { index, image in
@@ -143,7 +144,7 @@ struct PhotoGridView: View {
             if selectedImages.count > 1 {
                 Text("Drag to reorder photos. First photo will be the main image.")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Constants.Colors.secondaryLabel)
             }
         }
     }
@@ -166,7 +167,7 @@ struct PhotoCell: View {
                 .cornerRadius(8)
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(isMain ? Color.blue : Color.clear, lineWidth: 2)
+                        .stroke(isMain ? Constants.Colors.label : Color.clear, lineWidth: 2)
                 )
             
             if isMain {
@@ -179,7 +180,7 @@ struct PhotoCell: View {
                             .foregroundColor(.white)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Color.blue)
+                            .background(Constants.Colors.label)
                             .cornerRadius(4)
                     }
                     Spacer()
@@ -190,8 +191,8 @@ struct PhotoCell: View {
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.title2)
-                    .foregroundColor(canRemove ? .white : .gray)
-                    .background(canRemove ? Color.black.opacity(0.6) : Color.gray.opacity(0.3))
+                    .foregroundColor(canRemove ? .white : Constants.Colors.secondaryLabel)
+                    .background(canRemove ? Color.black.opacity(0.6) : Constants.Colors.sampleCardBackground)
                     .clipShape(Circle())
             }
             .disabled(!canRemove)
@@ -209,18 +210,18 @@ struct AddMorePhotoCell: View {
             VStack(spacing: 6) {
                 Image(systemName: "plus")
                     .font(.title2)
-                    .foregroundColor(.blue)
+                    .foregroundColor(Constants.Colors.label)
                 
                 Text("Add Photo")
                     .font(.caption)
-                    .foregroundColor(.blue)
+                    .foregroundColor(Constants.Colors.label)
             }
             .frame(width: 110, height: 110)
-            .background(Color.white.opacity(0.9))
+            .background(Constants.Colors.sampleCardBackground)
             .cornerRadius(8)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color.blue.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [4]))
+                    .stroke(Constants.Colors.label.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [4]))
             )
         }
     }
@@ -233,6 +234,7 @@ struct PhotoTipsView: View {
             Text("Photo Tips")
                 .font(.headline)
                 .fontWeight(.medium)
+                .foregroundColor(Constants.Colors.label)
             
             VStack(alignment: .leading, spacing: 6) {
                 TipRow(icon: "lightbulb", text: "Use good lighting and clear backgrounds")
@@ -242,7 +244,7 @@ struct PhotoTipsView: View {
             }
         }
         .padding(12)
-        .background(Color.white.opacity(0.9))
+        .background(Constants.Colors.sampleCardBackground)
         .cornerRadius(12)
     }
 }

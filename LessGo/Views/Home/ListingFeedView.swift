@@ -4,37 +4,54 @@ import MapKit
 // MARK: - Main View
 
 struct ListingFeedView: View {
+    let onMessageSeller: (() -> Void)?
     @EnvironmentObject var listingViewModel: ListingViewModel
     @State private var showingFilters = false
     @State private var showingMap = false
     
+    init(onMessageSeller: (() -> Void)? = nil) {
+        self.onMessageSeller = onMessageSeller
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
-            // Header extracted to its own view
-            ListingFeedHeaderView(showingMap: $showingMap)
-                .environmentObject(listingViewModel)
-            
-            // Content
-            ListingFeedContentView(showingMap: showingMap)
-                .environmentObject(listingViewModel)
-        }
-        .background(Color.blue)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
+            // Custom Header
+            HStack {
                 Text("LessGo")
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
+                    .foregroundColor(Constants.Colors.label)
+                Spacer()
                 Button(action: {
                     showingFilters.toggle()
                 }) {
                     Image(systemName: "slider.horizontal.3")
-                        .foregroundColor(.white)
+                        .foregroundColor(Constants.Colors.label)
+                        .font(.title2)
                 }
             }
+            .padding(.horizontal)
+            .padding(.top, 8)
+            .padding(.bottom, 12)
+            .padding(.top, UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0)
+            .background(Constants.Colors.background)
+            
+            // Content
+            Group {
+                // Header extracted to its own view
+                ListingFeedHeaderView(showingMap: $showingMap)
+                    .environmentObject(listingViewModel)
+                
+                // Main content
+                ListingFeedContentView(onMessageSeller: onMessageSeller, showingMap: showingMap)
+                    .environmentObject(listingViewModel)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
+        // Make the whole screen white, including above the notch and above the custom tab bar
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(Constants.Colors.background)
+        .ignoresSafeArea(edges: [.top, .bottom])
         .sheet(isPresented: $showingFilters) {
             FiltersView()
                 .environmentObject(listingViewModel)
@@ -61,7 +78,7 @@ struct ListingFeedHeaderView: View {
     var body: some View {
         VStack(spacing: Constants.Design.spacing) {
             // Search Bar
-            SearchBarView(searchText: $listingViewModel.searchText)
+            ListingSearchBarView(searchText: $listingViewModel.searchText)
             
             // Quick Filters
             ScrollView(.horizontal, showsIndicators: false) {
@@ -90,8 +107,8 @@ struct ListingFeedHeaderView: View {
                         .font(.subheadline)
                         .padding(.horizontal, Constants.Design.padding)
                         .padding(.vertical, Constants.Design.smallPadding)
-                        .background(Color.white.opacity(0.2))
-                        .foregroundColor(.white)
+                        .background(Constants.Colors.sampleCardBackground)
+                        .foregroundColor(Constants.Colors.label)
                         .cornerRadius(Constants.Design.cornerRadius)
                     }
                     
@@ -121,8 +138,8 @@ struct ListingFeedHeaderView: View {
                         .font(.subheadline)
                         .padding(.horizontal, Constants.Design.padding)
                         .padding(.vertical, Constants.Design.smallPadding)
-                        .background(Color.white.opacity(0.2))
-                        .foregroundColor(.white)
+                        .background(Constants.Colors.sampleCardBackground)
+                        .foregroundColor(Constants.Colors.label)
                         .cornerRadius(Constants.Design.cornerRadius)
                     }
                     
@@ -137,7 +154,7 @@ struct ListingFeedHeaderView: View {
                         .font(.subheadline)
                         .padding(.horizontal, Constants.Design.padding)
                         .padding(.vertical, Constants.Design.smallPadding)
-                        .background(Constants.Colors.primary)
+                        .background(Constants.Colors.label)
                         .foregroundColor(.white)
                         .cornerRadius(Constants.Design.cornerRadius)
                     }
@@ -145,14 +162,14 @@ struct ListingFeedHeaderView: View {
                 .padding(.horizontal, Constants.Design.largePadding)
             }
         }
-        .padding(.top, Constants.Design.spacing)
-        .background(Color.blue)
+        .background(Constants.Colors.background)
     }
 }
 
 // MARK: - Content View
 
 struct ListingFeedContentView: View {
+    let onMessageSeller: (() -> Void)?
     @EnvironmentObject var listingViewModel: ListingViewModel
     var showingMap: Bool
     
@@ -161,39 +178,35 @@ struct ListingFeedContentView: View {
             MapView(listings: listingViewModel.filteredListings)
                 .environmentObject(listingViewModel)
         } else {
-            if listingViewModel.filteredListings.isEmpty {
-                EmptyStateView()
-            } else {
-                ListingsListView(listings: listingViewModel.filteredListings)
-                    .environmentObject(listingViewModel)
-            }
+            // Always show the listings view to avoid white space
+            ListingsListView(listings: listingViewModel.filteredListings, onMessageSeller: onMessageSeller)
+                .environmentObject(listingViewModel)
         }
     }
 }
 
-// MARK: - Empty State View
+// MARK: - Listing Empty State View
 
-struct EmptyStateView: View {
+struct ListingEmptyStateView: View {
     var body: some View {
         VStack(spacing: Constants.Design.largeSpacing) {
-            Spacer()
             Image(systemName: "bag.circle.fill")
                 .font(.system(size: 80))
-                .foregroundColor(.white)
+                .foregroundColor(Constants.Colors.label)
             VStack(spacing: Constants.Design.spacing) {
                 Text("Welcome to LessGo!")
                     .font(.title2)
                     .fontWeight(.semibold)
-                    .foregroundColor(.white)
+                    .foregroundColor(Constants.Colors.label)
                 Text("Start exploring amazing deals in your local marketplace. Browse listings below or use the search to find exactly what you need.")
                     .font(.subheadline)
-                    .foregroundColor(.white.opacity(0.8))
+                    .foregroundColor(Constants.Colors.secondaryLabel)
                     .multilineTextAlignment(.center)
             }
-            Spacer()
         }
         .padding(.horizontal, Constants.Design.largePadding)
-        .background(Color.blue)
+        .padding(.top, Constants.Design.largeSpacing)
+        .background(Constants.Colors.background)
     }
 }
 
@@ -220,6 +233,34 @@ struct FiltersView: View {
     var body: some View {
         Text("Filters go here")
             .padding()
+    }
+}
+
+// MARK: - Listing Search Bar View
+
+struct ListingSearchBarView: View {
+    @Binding var searchText: String
+    
+    var body: some View {
+        HStack {
+            Image(systemName: "magnifyingglass")
+                .foregroundColor(Constants.Colors.label)
+            
+            TextField("Search listings...", text: $searchText)
+                .textFieldStyle(PlainTextFieldStyle())
+                .foregroundColor(Constants.Colors.label)
+            
+            if !searchText.isEmpty {
+                Button("Clear") {
+                    searchText = ""
+                }
+                .foregroundColor(Constants.Colors.label)
+            }
+        }
+        .padding(.horizontal, Constants.Design.padding)
+        .padding(.vertical, Constants.Design.smallPadding)
+        .background(Constants.Colors.sampleCardBackground)
+        .cornerRadius(Constants.Design.cornerRadius)
     }
 }
 

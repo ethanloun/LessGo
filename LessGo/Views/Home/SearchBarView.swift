@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct SearchBarView: View {
+struct HomeSearchBarView: View {
     @Binding var searchText: String
     @FocusState private var isFocused: Bool
     
@@ -8,11 +8,12 @@ struct SearchBarView: View {
         HStack(spacing: Constants.Design.spacing) {
             HStack(spacing: Constants.Design.smallSpacing) {
                 Image(systemName: "magnifyingglass")
-                    .foregroundColor(.gray)
+                    .foregroundColor(Constants.Colors.secondaryLabel)
                 
                 TextField("Search listings...", text: $searchText)
                     .focused($isFocused)
                     .textFieldStyle(PlainTextFieldStyle())
+                    .foregroundColor(Constants.Colors.label)
                     .submitLabel(.search)
                     .onTapGesture {
                         isFocused = true
@@ -24,13 +25,13 @@ struct SearchBarView: View {
                         isFocused = false
                     }) {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.gray)
+                            .foregroundColor(Constants.Colors.secondaryLabel)
                     }
                 }
             }
             .padding(.horizontal, Constants.Design.padding)
             .padding(.vertical, Constants.Design.smallPadding)
-            .background(Color.white)
+            .background(Constants.Colors.sampleCardBackground)
             .cornerRadius(Constants.Design.cornerRadius)
             
             if isFocused {
@@ -38,7 +39,7 @@ struct SearchBarView: View {
                     searchText = ""
                     isFocused = false
                 }
-                .foregroundColor(.white)
+                .foregroundColor(Constants.Colors.label)
                 .transition(.move(edge: .trailing))
                 .padding()
             }
@@ -57,7 +58,7 @@ struct SearchBarView: View {
 }
 
 #Preview {
-    SearchBarView(searchText: .constant(""))
+    HomeSearchBarView(searchText: .constant(""))
         .padding()
 }
 

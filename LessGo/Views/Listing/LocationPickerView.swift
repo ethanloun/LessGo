@@ -28,10 +28,10 @@ class LocationPickerViewController: UIViewController {
     }
     
     private func setupUI() {
-        view.backgroundColor = .systemBlue
+        view.backgroundColor = UIColor.systemBackground
         
         // Setup navigation
-        title = "Select Location"
+        title = "Select Location on Map"
         navigationItem.leftBarButtonItem = UIBarButtonItem(
             barButtonSystemItem: .cancel,
             target: self,
@@ -52,7 +52,7 @@ class LocationPickerViewController: UIViewController {
         
         // Setup confirm button
         confirmButton.setTitle("Confirm Location", for: .normal)
-        confirmButton.backgroundColor = .systemBlue
+        confirmButton.backgroundColor = UIColor.label
         confirmButton.setTitleColor(.white, for: .normal)
         confirmButton.layer.cornerRadius = 8
         confirmButton.translatesAutoresizingMaskIntoConstraints = false
@@ -92,14 +92,6 @@ class LocationPickerViewController: UIViewController {
     
     @objc private func confirmLocationTapped() {
         let center = mapView.centerCoordinate
-        let location = Location(
-            latitude: center.latitude,
-            longitude: center.longitude,
-            address: "Selected Location",
-            city: "Unknown",
-            state: "Unknown",
-            zipCode: "Unknown"
-        )
         
         // Reverse geocode to get actual address
         let geocoder = CLGeocoder()
@@ -116,6 +108,15 @@ class LocationPickerViewController: UIViewController {
                     )
                     self?.onLocationSelected?(location)
                 } else {
+                    // Fallback location if geocoding fails
+                    let location = Location(
+                        latitude: center.latitude,
+                        longitude: center.longitude,
+                        address: "Selected Location",
+                        city: "Unknown",
+                        state: "Unknown",
+                        zipCode: "Unknown"
+                    )
                     self?.onLocationSelected?(location)
                 }
                 self?.dismiss(animated: true)
@@ -176,7 +177,7 @@ extension LocationPickerViewController: MKMapViewDelegate {
         var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
         
         if annotationView == nil {
-            annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+            annotationView = MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: identifier)
             annotationView?.canShowCallout = true
         } else {
             annotationView?.annotation = annotation

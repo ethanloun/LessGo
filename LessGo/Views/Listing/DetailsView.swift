@@ -21,10 +21,11 @@ struct DetailsView: View {
                 Text("Additional Details")
                     .font(.title2)
                     .fontWeight(.semibold)
+                    .foregroundColor(Constants.Colors.label)
                 
                 Text("Add more specific information to help buyers find your item.")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Constants.Colors.secondaryLabel)
             }
             
             // Quantity
@@ -32,6 +33,7 @@ struct DetailsView: View {
                 Text("Quantity Available")
                     .font(.headline)
                     .fontWeight(.medium)
+                    .foregroundColor(Constants.Colors.label)
                 
                 HStack {
                     Button(action: {
@@ -41,7 +43,7 @@ struct DetailsView: View {
                     }) {
                         Image(systemName: "minus.circle.fill")
                             .font(.title2)
-                            .foregroundColor(.blue)
+                            .foregroundColor(Constants.Colors.label)
                     }
                     .disabled(draftListing.quantity <= 1)
                     
@@ -50,19 +52,20 @@ struct DetailsView: View {
                         .fontWeight(.semibold)
                         .frame(minWidth: 60)
                         .multilineTextAlignment(.center)
+                        .foregroundColor(Constants.Colors.label)
                     
                     Button(action: {
                         onUpdateQuantity(draftListing.quantity + 1)
                     }) {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
-                            .foregroundColor(.blue)
+                            .foregroundColor(Constants.Colors.label)
                     }
                 }
                 
                 Text("How many of this item do you have?")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Constants.Colors.secondaryLabel)
             }
             
             // Brand & Model
@@ -70,12 +73,13 @@ struct DetailsView: View {
                 Text("Brand & Model")
                     .font(.headline)
                     .fontWeight(.medium)
+                    .foregroundColor(Constants.Colors.label)
                 
                 VStack(alignment: .leading, spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Brand")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(Constants.Colors.secondaryLabel)
                         
                         TextField("e.g., Apple, Nike, Samsung", text: Binding(
                             get: { draftListing.brand ?? "" },
@@ -87,7 +91,7 @@ struct DetailsView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Model")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(Constants.Colors.secondaryLabel)
                         
                         TextField("e.g., iPhone 13, Air Max 90", text: Binding(
                             get: { draftListing.model ?? "" },
@@ -99,7 +103,7 @@ struct DetailsView: View {
                 
                 Text("Leave blank if generic or unknown")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Constants.Colors.secondaryLabel)
             }
             
             // Tags
@@ -107,6 +111,7 @@ struct DetailsView: View {
                 Text("Tags & Keywords")
                     .font(.headline)
                     .fontWeight(.medium)
+                    .foregroundColor(Constants.Colors.label)
                 
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
@@ -135,7 +140,7 @@ struct DetailsView: View {
                 
                 Text("Add relevant tags to help buyers find your item (max 10)")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Constants.Colors.secondaryLabel)
             }
             
             // Pricing Options
@@ -143,18 +148,19 @@ struct DetailsView: View {
                 Text("Pricing Options")
                     .font(.headline)
                     .fontWeight(.medium)
+                    .foregroundColor(Constants.Colors.label)
                 
                 VStack(spacing: 8) {
                     Toggle("Price is negotiable", isOn: Binding(
                         get: { draftListing.isNegotiable },
                         set: { _ in onToggleNegotiable() }
                     ))
-                    .toggleStyle(SwitchToggleStyle(tint: .blue))
+                    .toggleStyle(SwitchToggleStyle(tint: Constants.Colors.label))
                     
                     if draftListing.isNegotiable {
                         Text("Buyers can make offers on your item")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(Constants.Colors.secondaryLabel)
                     }
                 }
             }
@@ -195,14 +201,14 @@ struct TagView: View {
                 .font(.caption)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
-                .background(Color.blue.opacity(0.1))
-                .foregroundColor(.blue)
+                .background(Constants.Colors.sampleCardBackground)
+                .foregroundColor(Constants.Colors.label)
                 .cornerRadius(12)
             
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.caption)
-                    .foregroundColor(.blue)
+                    .foregroundColor(Constants.Colors.label)
             }
         }
     }
