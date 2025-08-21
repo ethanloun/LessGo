@@ -37,16 +37,16 @@ struct ListingFeedView: View {
             .background(Constants.Colors.background)
             
             // Content
-            Group {
-                // Header extracted to its own view
+            VStack(spacing: 0) {
                 ListingFeedHeaderView(showingMap: $showingMap)
                     .environmentObject(listingViewModel)
-                
-                // Main content
                 ListingFeedContentView(onMessageSeller: onMessageSeller, showingMap: showingMap)
                     .environmentObject(listingViewModel)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .background(Constants.Colors.background)
+            .ignoresSafeArea(edges: [.top, .bottom])
+
         }
         // Make the whole screen white, including above the notch and above the custom tab bar
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -178,9 +178,15 @@ struct ListingFeedContentView: View {
             MapView(listings: listingViewModel.filteredListings)
                 .environmentObject(listingViewModel)
         } else {
-            // Always show the listings view to avoid white space
-            ListingsListView(listings: listingViewModel.filteredListings, onMessageSeller: onMessageSeller)
+            if listingViewModel.filteredListings.isEmpty {
+                ListingEmptyStateView() // 👈 shows a proper empty state instead of whitespace
+            } else {
+                ListingsListView(
+                    listings: listingViewModel.filteredListings,
+                    onMessageSeller: onMessageSeller
+                )
                 .environmentObject(listingViewModel)
+            }
         }
     }
 }

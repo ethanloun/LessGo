@@ -22,7 +22,6 @@ struct MainTabView: View {
                     .environmentObject(messagingViewModel)
                     .tag(1)
 
-                // Sell (trigger only)
                 Color.clear.tag(2)
 
                 MessagesView()
@@ -35,9 +34,8 @@ struct MainTabView: View {
             }
             .accentColor(Constants.Colors.primary)
             .ignoresSafeArea(.keyboard, edges: .bottom)
-            .toolbar(.hidden, for: .tabBar) // <-- Hide the system tab bar entirely
-            .opacity(showingCreateListing ? 0 : 1)
-            .disabled(showingCreateListing)
+            .toolbar(.hidden, for: .tabBar)
+            .tabViewStyle(.page(indexDisplayMode: .never)) // 👈 forces TabView not to reserve space
 
             // Full-screen create listing overlay
             if showingCreateListing {
