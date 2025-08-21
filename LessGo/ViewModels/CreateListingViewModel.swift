@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import Combine
+import CoreData
 
 @MainActor
 class CreateListingViewModel: ObservableObject {
@@ -15,6 +16,7 @@ class CreateListingViewModel: ObservableObject {
     @Published var currentStep: CreateListingStep = .photos
     // MARK: - Private Properties
     private var cancellables = Set<AnyCancellable>()
+    private let persistenceController = PersistenceController.shared
     
     // MARK: - Initialization
     init(sellerId: String) {
@@ -457,8 +459,9 @@ class CreateListingViewModel: ObservableObject {
         isLoading = true
         
         do {
-            // In real app, convert draft to listing and post to backend
-            try await Task.sleep(nanoseconds: 2_000_000_000) // Simulate API call
+            // Convert DraftListing to Listing and save to Core Data
+            let listing = draftListing.toListing()
+            let _ = persistenceController.saveListing(listing)
             
             showSuccess = true
             resetForm()

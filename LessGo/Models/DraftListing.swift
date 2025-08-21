@@ -104,4 +104,41 @@ struct DraftListing: Identifiable, Codable {
         
         return errors
     }
+    
+    /// Convert DraftListing to Listing
+    func toListing() -> Listing {
+        guard let category = self.category,
+              let condition = self.condition,
+              let location = self.location else {
+            fatalError("Cannot convert draft to listing: missing required fields")
+        }
+        
+        var listing = Listing(
+            id: self.id,
+            sellerId: self.sellerId,
+            title: self.title,
+            description: self.description,
+            price: self.price,
+            category: category,
+            condition: condition,
+            location: location
+        )
+        
+        listing.images = self.images
+        listing.tags = self.tags
+        listing.isNegotiable = self.isNegotiable
+        listing.pickupOnly = self.pickupOnly
+        listing.shippingAvailable = self.shippingAvailable
+        listing.shippingCost = self.shippingCost
+        listing.quantity = self.quantity
+        listing.brand = self.brand
+        listing.model = self.model
+        listing.deliveryRadius = self.deliveryRadius
+        listing.createdAt = self.createdAt
+        listing.updatedAt = Date() // Update timestamp when posting
+        listing.expiresAt = self.expiresAt
+        listing.isDraft = false // Mark as published
+        
+        return listing
+    }
 }

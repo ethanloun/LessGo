@@ -24,7 +24,8 @@ struct MainTabView: View {
 
                 Color.clear.tag(2)
 
-                MessagesView()
+                // Use a placeholder view for messages tab since we need a listing context
+                MessagesPlaceholderView()
                     .environmentObject(messagingViewModel)
                     .tag(3)
 
@@ -62,6 +63,40 @@ struct MainTabView: View {
                 showingCreateListing = true
                 selectedTab = 0
             }
+        }
+    }
+}
+
+// MARK: - Messages Placeholder View
+struct MessagesPlaceholderView: View {
+    @EnvironmentObject var messagingViewModel: MessagingViewModel
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 20) {
+                Image(systemName: "message.circle")
+                    .font(.system(size: 60))
+                    .foregroundColor(.secondary)
+                
+                Text("Messages")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                
+                Text("Select a listing to view and send messages")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+                
+                // Core Data is now integrated directly into the main app
+                Text("Core Data is integrated throughout the app")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 20)
+            }
+            .navigationTitle("Messages")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }

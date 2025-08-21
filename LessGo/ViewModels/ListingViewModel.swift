@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import Combine
+import CoreData
 
 @MainActor
 class ListingViewModel: ObservableObject {
@@ -19,6 +20,7 @@ class ListingViewModel: ObservableObject {
     private var currentPage: Int = 1
     private let listingsPerPage: Int = 20
     private var cancellables = Set<AnyCancellable>()
+    private let persistenceController = PersistenceController.shared
     
     // MARK: - Computed Properties
     var totalListings: Int {
@@ -32,18 +34,9 @@ class ListingViewModel: ObservableObject {
     // MARK: - Initialization
     init() {
         setupBindings()
-        // Load sample data immediately
-        loadSampleData()
         Task {
             await loadInitialListings()
         }
-    }
-    
-    // MARK: - Sample Data Loading
-    private func loadSampleData() {
-        let sampleListings = generateMockListings()
-        listings = sampleListings
-        filterListings(searchText: searchText, category: selectedCategory, priceRange: priceRange)
     }
     
     // MARK: - Setup
@@ -69,11 +62,19 @@ class ListingViewModel: ObservableObject {
         currentPage = 1
         
         do {
-            // For now, generate mock data
-            let mockListings = generateMockListings()
-            listings = mockListings
+            // Load listings from Core Data
+            let coreDataListings = persistenceController.fetchActiveListingsAsStructs()
+            
+            // If no listings in Core Data, generate sample data
+            if coreDataListings.isEmpty {
+                generateSampleDataInCoreData()
+                listings = persistenceController.fetchActiveListingsAsStructs()
+            } else {
+                listings = coreDataListings
+            }
+            
             filterListings(searchText: searchText, category: selectedCategory, priceRange: priceRange)
-            hasMoreListings = mockListings.count >= listingsPerPage
+            hasMoreListings = false // For now, load all listings at once
         } catch {
             showError(message: "Failed to load listings: \(error.localizedDescription)")
         }
@@ -149,6 +150,72 @@ class ListingViewModel: ObservableObject {
     private func showError(message: String) {
         errorMessage = message
         showError = true
+    }
+    
+    // MARK: - Sample Data Generation
+    private func generateSampleDataInCoreData() {
+        // Create sample users first
+        let user1 = persistenceController.addUser(
+            id: "user1",
+            email: "john@example.com",
+            displayName: "John Smith"
+        )
+        
+        let user2 = persistenceController.addUser(
+            id: "user2",
+            email: "sarah@example.com",
+            displayName: "Sarah Johnson"
+        )
+        
+        // Create sample listings
+        let sampleLocation = Location(
+            latitude: 37.7749,
+            longitude: -122.4194,
+            address: "123 Main St",
+            city: "San Francisco"
+        )
+        
+        var listing1 = Listing(
+            id: UUID().uuidString,
+            sellerId: user1.id ?? "",
+            title: "iPhone 14 Pro Max",
+            description: "Excellent condition iPhone 14 Pro Max, 256GB. No scratches, includes original box and charger.",
+            price: 899.99,
+            category: .electronics,
+            condition: .excellent,
+            location: sampleLocation
+        )
+        listing1.images = ["sample1.jpg"]
+        listing1.tags = ["phone", "apple", "smartphone"]
+        let _ = persistenceController.saveListing(listing1)
+        
+        var listing2 = Listing(
+            id: UUID().uuidString,
+            sellerId: user2.id ?? "",
+            title: "Nike Air Jordan 1",
+            description: "Authentic Nike Air Jordan 1 in size 10. Worn a few times, great condition.",
+            price: 150.00,
+            category: .clothing,
+            condition: .good,
+            location: sampleLocation
+        )
+        listing2.images = ["sample2.jpg"]
+        listing2.tags = ["shoes", "nike", "jordan", "sneakers"]
+        let _ = persistenceController.saveListing(listing2)
+        
+        var listing3 = Listing(
+            id: UUID().uuidString,
+            sellerId: user1.id ?? "",
+            title: "MacBook Pro 13\"",
+            description: "2022 MacBook Pro 13\" with M2 chip. Perfect for students and professionals.",
+            price: 1299.99,
+            category: .electronics,
+            condition: .likeNew,
+            location: sampleLocation
+        )
+        listing3.images = ["sample3.jpg"]
+        listing3.tags = ["laptop", "apple", "macbook", "computer"]
+        let _ = persistenceController.saveListing(listing3)
     }
     
     // MARK: - Mock Data Generation

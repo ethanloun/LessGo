@@ -1,28 +1,24 @@
 import SwiftUI
+import CoreData
 
 struct NewMessageView: View {
     let viewModel: MessagingViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.managedObjectContext) private var viewContext
     @State private var searchText = ""
-    @State private var selectedUser: User?
+    @State private var selectedUser: CDUser?
     @State private var showChatView = false
     
-    // Sample users for demonstration
-    private let sampleUsers = [
-        User(id: "user1", email: "john@example.com", displayName: "John Smith"),
-        User(id: "user2", email: "sarah@example.com", displayName: "Sarah Johnson"),
-        User(id: "user3", email: "mike@example.com", displayName: "Mike Wilson"),
-        User(id: "user4", email: "emma@example.com", displayName: "Emma Davis"),
-        User(id: "user5", email: "alex@example.com", displayName: "Alex Chen")
-    ]
-    
-    private var filteredUsers: [User] {
+    private var filteredUsers: [CDUser] {
+        let users = fetchUsers()
         if searchText.isEmpty {
-            return sampleUsers
+            return users
         } else {
-            return sampleUsers.filter { user in
-                user.displayName.localizedCaseInsensitiveContains(searchText) ||
-                user.email.localizedCaseInsensitiveContains(searchText)
+            return users.filter { user in
+                let username = user.displayName ?? ""
+                let email = user.email ?? ""
+                return username.localizedCaseInsensitiveContains(searchText) ||
+                       email.localizedCaseInsensitiveContains(searchText)
             }
         }
     }
@@ -30,28 +26,51 @@ struct NewMessageView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Search Bar
-                SearchBarView(searchText: $searchText)
-                    .padding(.horizontal)
-                    .padding(.top, 8)
+                // Simple Search Bar
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.secondary)
+                    
+                    TextField("Search users...", text: $searchText)
+                        .textFieldStyle(PlainTextFieldStyle())
+                    
+                    if !searchText.isEmpty {
+                        Button("Clear") {
+                            searchText = ""
+                        }
+                        .foregroundColor(.blue)
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+                .padding(.horizontal)
+                .padding(.top, 8)
                 
                 if filteredUsers.isEmpty {
                     Spacer()
                     Text("No users found")
-                        .foregroundColor(.secondary) // adaptive
+                        .foregroundColor(.secondary)
                     Spacer()
                 } else {
                     List(filteredUsers) { user in
-                        UserRowView(user: user) {
-                            selectedUser = user
-                            showChatView = true
+                        HStack {
+                            Text(user.displayName ?? "Unknown")
+                            Spacer()
+                            Text(user.email ?? "")
+                                .foregroundColor(.secondary)
                         }
+                            .onTapGesture {
+                                selectedUser = user
+                                showChatView = true
+                            }
                     }
                     .listStyle(PlainListStyle())
-                    .background(Color(.systemBackground)) // adaptive
+                    .background(Color(.systemBackground))
                 }
             }
-            .background(Color(.systemBackground)) // adaptive
+            .background(Color(.systemBackground))
             .navigationTitle("New Message")
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarItems(
@@ -64,62 +83,29 @@ struct NewMessageView: View {
             .sheet(isPresented: $showChatView) {
                 if let user = selectedUser {
                     let newChat = ChatPreview(
-                        from: Chat(id: UUID().uuidString, participants: ["currentUser", user.id]),
-                        otherParticipant: user
+                        from: Chat(id: UUID().uuidString, participants: ["currentUser", user.id ?? ""]),
+                        otherParticipant: User(id: user.id ?? "", email: user.email ?? "", displayName: user.displayName ?? "")
                     )
-                    ChatView(chat: newChat)
+                    ChatView(chat: newChat, onChatCreated: nil)
                 }
             }
         }
     }
-}
-// MARK: - User Row View
-struct UserRowView: View {
-    let user: User
-    let onTap: () -> Void
     
-    var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: 12) {
-                // Avatar
-                Circle()
-                    .fill(Color(.systemGray5)) // adaptive background
-                    .frame(width: 50, height: 50)
-                    .overlay(
-                        Text(String(user.displayName.prefix(1)))
-                            .font(.headline)
-                            .foregroundColor(.primary) // adaptive text
-                    )
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(user.displayName)
-                        .font(.headline)
-                        .foregroundColor(.primary) // adaptive
-                    
-                    Text(user.email)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary) // adaptive
-                    
-                    if let bio = user.bio, !bio.isEmpty {
-                        Text(bio)
-                            .font(.caption)
-                            .foregroundColor(.secondary) // adaptive
-                            .lineLimit(2)
-                    }
-                }
-                
-                Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.secondary) // adaptive
-                    .font(.caption)
-            }
-            .padding(.vertical, 4)
+    private func fetchUsers() -> [CDUser] {
+        let request: NSFetchRequest<CDUser> = CDUser.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \CDUser.displayName, ascending: true)]
+        
+        do {
+            return try viewContext.fetch(request)
+        } catch {
+            print("Error fetching users: \(error)")
+            return []
         }
-        .buttonStyle(PlainButtonStyle())
     }
 }
 
 #Preview {
     NewMessageView(viewModel: MessagingViewModel(currentUserId: "currentUser"))
+        .environment(\.managedObjectContext, PersistenceController.preview.viewContext)
 }
