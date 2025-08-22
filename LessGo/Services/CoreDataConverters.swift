@@ -31,7 +31,7 @@ extension CDUser {
         }
         
         // Convert location if available
-        if let locationName = self.locationName {
+        if self.locationName != nil {
             user.location = Location(
                 latitude: self.latitude,
                 longitude: self.longitude,
@@ -71,6 +71,30 @@ extension CDUser {
             self.latitude = location.latitude ?? 0.0
             self.longitude = location.longitude ?? 0.0
         }
+    }
+}
+
+// MARK: - CDChat Extensions
+extension CDChat {
+    /// Convert CDChat to the Chat struct
+    func toChat() -> Chat {
+        var chat = Chat(
+            id: self.id ?? UUID().uuidString,
+            participants: self.participants as? [String] ?? []
+        )
+        
+        // Note: listingId is a let constant, so we can't modify it after creation
+        // This will need to be handled in the Chat initializer if needed
+        chat.updatedAt = self.lastMessageAt ?? Date()
+        
+        return chat
+    }
+    
+    /// Update CDChat from Chat struct
+    func update(from chat: Chat) {
+        self.id = chat.id
+        self.participants = chat.participants
+        self.lastMessageAt = chat.updatedAt
     }
 }
 

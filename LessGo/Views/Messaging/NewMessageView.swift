@@ -2,7 +2,6 @@ import SwiftUI
 import CoreData
 
 struct NewMessageView: View {
-    let viewModel: MessagingViewModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.managedObjectContext) private var viewContext
     @State private var searchText = ""
@@ -86,7 +85,7 @@ struct NewMessageView: View {
                         from: Chat(id: UUID().uuidString, participants: ["currentUser", user.id ?? ""]),
                         otherParticipant: User(id: user.id ?? "", email: user.email ?? "", displayName: user.displayName ?? "")
                     )
-                    ChatView(chat: newChat, onChatCreated: nil)
+                    ChatView(chat: newChat)
                 }
             }
         }
@@ -106,6 +105,6 @@ struct NewMessageView: View {
 }
 
 #Preview {
-    NewMessageView(viewModel: MessagingViewModel(currentUserId: "currentUser"))
+    NewMessageView()
         .environment(\.managedObjectContext, PersistenceController.preview.viewContext)
 }

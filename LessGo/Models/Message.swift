@@ -76,7 +76,7 @@ struct ChatPreview: Identifiable, Codable {
     let id: String
     let participants: [String]
     let listingId: String?
-    let lastMessage: Message?
+    var lastMessage: Message?
     let createdAt: Date
     var updatedAt: Date
     var isPinned: Bool

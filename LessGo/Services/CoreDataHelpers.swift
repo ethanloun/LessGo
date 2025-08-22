@@ -267,6 +267,204 @@ extension PersistenceController {
         save()
     }
     
+    func deleteMessage(messageId: String) {
+        let request: NSFetchRequest<CDMessage> = CDMessage.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", messageId)
+        
+        do {
+            let messages = try viewContext.fetch(request)
+            for message in messages {
+                viewContext.delete(message)
+            }
+            save()
+        } catch {
+            print("Error deleting message: \(error)")
+        }
+    }
+    
+    // MARK: - Chat Helpers
+    func createChat(
+        participants: [String],
+        listingId: String? = nil,
+        lastMessageContent: String? = nil,
+        lastMessageSenderId: String? = nil
+    ) -> CDChat {
+        let chat = CDChat(context: viewContext)
+        chat.id = UUID().uuidString
+        chat.participants = participants
+        chat.isPinned = false
+        chat.isArchived = false
+        chat.unreadCount = 0
+        chat.lastMessageAt = Date()
+        chat.lastMessageContent = lastMessageContent
+        chat.lastMessageSenderId = lastMessageSenderId
+        
+        // Link to listing if provided
+        if let listingId = listingId {
+            let listing = fetchListings().first { $0.id == listingId }
+            chat.listing = listing
+        }
+        
+        save()
+        return chat
+    }
+    
+    func createChat(
+        id: String,
+        participants: [String],
+        listingId: String? = nil,
+        lastMessageContent: String? = nil,
+        lastMessageSenderId: String? = nil
+    ) -> CDChat {
+        let chat = CDChat(context: viewContext)
+        chat.id = id
+        chat.participants = participants
+        chat.isPinned = false
+        chat.isArchived = false
+        chat.unreadCount = 0
+        chat.lastMessageAt = Date()
+        chat.lastMessageContent = lastMessageContent
+        chat.lastMessageSenderId = lastMessageSenderId
+        
+        // Link to listing if provided
+        if let listingId = listingId {
+            let listing = fetchListings().first { $0.id == listingId }
+            chat.listing = listing
+        }
+        
+        save()
+        return chat
+    }
+    
+    func fetchChat(chatId: String) -> CDChat? {
+        let request: NSFetchRequest<CDChat> = CDChat.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", chatId)
+        
+        do {
+            let chats = try viewContext.fetch(request)
+            return chats.first
+        } catch {
+            print("Error fetching chat: \(error)")
+            return nil
+        }
+    }
+    
+    func fetchChats() -> [CDChat] {
+        let request: NSFetchRequest<CDChat> = CDChat.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \CDChat.lastMessageAt, ascending: false)]
+        
+        do {
+            return try viewContext.fetch(request)
+        } catch {
+            print("Error fetching chats: \(error)")
+            return []
+        }
+    }
+    
+    func togglePinChat(chatId: String) {
+        if let chat = fetchChat(chatId: chatId) {
+            chat.isPinned.toggle()
+            save()
+        }
+    }
+    
+    func archiveChat(chatId: String) {
+        if let chat = fetchChat(chatId: chatId) {
+            chat.isArchived.toggle()
+            save()
+        }
+    }
+    
+    func deleteChat(chatId: String) {
+        if let chat = fetchChat(chatId: chatId) {
+            viewContext.delete(chat)
+            save()
+        }
+    }
+    
+    func markChatAsRead(chatId: String) {
+        if let chat = fetchChat(chatId: chatId) {
+            chat.unreadCount = 0
+            save()
+        }
+    }
+    
+    func updateChatLastMessage(
+        chatId: String,
+        messageId: String,
+        content: String,
+        senderId: String
+    ) {
+        if let chat = fetchChat(chatId: chatId) {
+            chat.lastMessageId = messageId
+            chat.lastMessageContent = content
+            chat.lastMessageSenderId = senderId
+            chat.lastMessageAt = Date()
+            chat.unreadCount += 1
+            save()
+        }
+    }
+    
+    func blockUser(userId: String) {
+        // In a real app, this would update the current user's blocked users list
+        // For now, we'll just print a message
+        print("User \(userId) blocked")
+    }
+    
+    func fetchChatsAsStructs() -> [ChatPreview] {
+        let chats = fetchChats()
+        var chatPreviews: [ChatPreview] = []
+        
+        for chat in chats {
+            guard let chatId = chat.id,
+                  let participants = chat.participants as? [String],
+                  participants.count >= 2 else { continue }
+            
+            // Get the other participant (not current user)
+            let otherParticipantId = participants.first { $0 != "currentUser" } ?? participants[0]
+            let otherParticipant = fetchUsers().first { $0.id == otherParticipantId }
+            
+            // Get the listing if available
+            let listing = chat.listing?.toListing()
+            
+            // Create ChatPreview
+            let chatStruct = Chat(
+                id: chatId,
+                participants: participants,
+                listingId: listing?.id
+            )
+            
+            var chatPreview = ChatPreview(
+                from: chatStruct,
+                otherParticipant: otherParticipant?.toUser() ?? User(id: otherParticipantId, email: "", displayName: "Unknown User"),
+                listing: listing
+            )
+            
+            // Set additional properties
+            chatPreview.isPinned = chat.isPinned
+            chatPreview.isArchived = chat.isArchived
+            chatPreview.unreadCount = Int(chat.unreadCount)
+            chatPreview.updatedAt = chat.lastMessageAt ?? Date()
+            
+            // Set last message if available
+            if let lastMessageContent = chat.lastMessageContent,
+               let lastMessageSenderId = chat.lastMessageSenderId {
+                let lastMessage = Message(
+                    id: chat.lastMessageId ?? UUID().uuidString,
+                    chatId: chatId,
+                    senderId: lastMessageSenderId,
+                    receiverId: "",
+                    content: lastMessageContent
+                )
+                chatPreview.lastMessage = lastMessage
+            }
+            
+            chatPreviews.append(chatPreview)
+        }
+        
+        return chatPreviews
+    }
+    
     // MARK: - Search and Filter
     func searchListings(query: String) -> [CDListing] {
         let request: NSFetchRequest<CDListing> = CDListing.fetchRequest()

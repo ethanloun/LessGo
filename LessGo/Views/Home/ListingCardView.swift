@@ -175,7 +175,7 @@ struct ListingCardView: View {
                 onDismiss: {
                     showSellerContact = false
                 },
-                onChatStarted: onMessageSeller
+
             )
         }
     }

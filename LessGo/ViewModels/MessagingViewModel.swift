@@ -1,241 +1,209 @@
 import Foundation
-import SwiftUI
+import CoreData
 import Combine
 
-@MainActor
 class MessagingViewModel: ObservableObject {
-    // MARK: - Published Properties
     @Published var chats: [ChatPreview] = []
     @Published var filteredChats: [ChatPreview] = []
-    @Published var searchText: String = ""
-    @Published var isLoading: Bool = false
-    @Published var showError: Bool = false
-    @Published var errorMessage: String = ""
-    @Published var selectedChat: ChatPreview?
-    @Published var showChatView: Bool = false
-    @Published var tempChatPreview: ChatPreview?
+    @Published var searchText = ""
+    @Published var isLoading = false
+    @Published var showError = false
+    @Published var errorMessage = ""
     
-    // MARK: - Private Properties
+    private let persistenceController = PersistenceController.shared
     private var cancellables = Set<AnyCancellable>()
-    private let userId: String
     
-    // MARK: - Initialization
-    init(currentUserId: String) {
-        self.userId = currentUserId
-        setupSearchSubscription()
+    init() {
+        setupBindings()
         loadChats()
     }
     
-    // MARK: - Search Setup
-    private func setupSearchSubscription() {
+    private func setupBindings() {
+        // Debounced search with real-time filtering
         $searchText
             .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
             .sink { [weak self] searchText in
                 self?.filterChats(searchText: searchText)
             }
             .store(in: &cancellables)
+        
+        // Listen for chat message updates
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("ChatMessageSent"),
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            if let userInfo = notification.userInfo,
+               let chatId = userInfo["chatId"] as? String,
+               let messageId = userInfo["messageId"] as? String,
+               let content = userInfo["content"] as? String,
+               let senderId = userInfo["senderId"] as? String {
+                self?.updateChatLastMessage(
+                    chatId: chatId,
+                    messageId: messageId,
+                    content: content,
+                    senderId: senderId
+                )
+            }
+        }
     }
     
-    // MARK: - Chat Loading
     func loadChats() {
         isLoading = true
         
-        // Simulate API call
-        Task {
-            try? await Task.sleep(nanoseconds: 500_000_000)
-            
-            // Start with empty chats - only show real user chats
-            // Sample chats are only loaded for demo purposes when explicitly requested
-            self.chats = []
-            self.filteredChats = []
-            self.isLoading = false
-        }
-    }
-    
-    private func createSampleChats() -> [ChatPreview] {
-        let sampleUsers = [
-            User(id: "user1", email: "john@example.com", displayName: "John Smith"),
-            User(id: "user2", email: "sarah@example.com", displayName: "Sarah Johnson"),
-            User(id: "user3", email: "mike@example.com", displayName: "Mike Wilson"),
-            User(id: "user4", email: "emma@example.com", displayName: "Emma Davis"),
-            User(id: "user5", email: "alex@example.com", displayName: "Alex Chen")
-        ]
+        // Load chats from Core Data
+        let coreDataChats = persistenceController.fetchChatsAsStructs()
         
-        let sampleListings = [
-            Listing(
-                id: "listing1", 
-                sellerId: "user1", 
-                title: "Vintage Chair", 
-                description: "Beautiful vintage chair in excellent condition",
-                price: 120.0, 
-                category: .furniture,
-                condition: .excellent,
-                location: Location(city: "San Francisco", state: "CA")
-            ),
-            Listing(
-                id: "listing2", 
-                sellerId: "user2", 
-                title: "iPhone 12", 
-                description: "iPhone 12 in great condition with original box",
-                price: 450.0, 
-                category: .electronics,
-                condition: .good,
-                location: Location(city: "Los Angeles", state: "CA")
-            ),
-            Listing(
-                id: "listing3", 
-                sellerId: "user3", 
-                title: "Bicycle", 
-                description: "Mountain bike perfect for outdoor adventures",
-                price: 200.0, 
-                category: .sports,
-                condition: .fair,
-                location: Location(city: "Seattle", state: "WA")
-            )
-        ]
-        
-        let sampleMessages = [
-            Message(id: "msg1", chatId: "chat1", senderId: "user1", receiverId: userId, content: "Hi! Is this item still available?"),
-            Message(id: "msg2", chatId: "chat2", senderId: "user2", receiverId: userId, content: "Great! I'll take it. When can we meet?"),
-            Message(id: "msg3", chatId: "chat3", senderId: "user3", receiverId: userId, content: "Can you do $80 for the chair?"),
-            Message(id: "msg4", chatId: "chat4", senderId: "user4", receiverId: userId, content: "Thanks for the quick delivery!"),
-            Message(id: "msg5", chatId: "chat5", senderId: "user5", receiverId: userId, content: "Do you have more photos?")
-        ]
-        
-        let sampleChats = [
-            Chat(id: "chat1", participants: [userId, "user1"], listingId: "listing1"),
-            Chat(id: "chat2", participants: [userId, "user2"], listingId: "listing2"),
-            Chat(id: "chat3", participants: [userId, "user3"], listingId: "listing3"),
-            Chat(id: "chat4", participants: [userId, "user4"]),
-            Chat(id: "chat5", participants: [userId, "user5"])
-        ]
-        
-        // Update chats with last messages and unread counts
-        var updatedChats: [ChatPreview] = []
-        
-        for (index, chat) in sampleChats.enumerated() {
-            var updatedChat = chat
-            updatedChat.lastMessage = sampleMessages[index]
-            updatedChat.unreadCount = index % 2 == 0 ? 1 : 0 // Alternate unread status
-            updatedChat.isPinned = index == 0 // First chat is pinned
-            
-            let otherUserId = chat.participants.first { $0 != userId } ?? ""
-            let otherUser = sampleUsers.first { $0.id == otherUserId }
-            let listing = sampleListings.first { $0.id == chat.listingId }
-            
-            let chatPreview = ChatPreview(from: updatedChat, otherParticipant: otherUser, listing: listing)
-            updatedChats.append(chatPreview)
+        // If no chats in Core Data, generate sample data
+        if coreDataChats.isEmpty {
+            generateSampleChatsInCoreData()
+            chats = persistenceController.fetchChatsAsStructs()
+        } else {
+            chats = coreDataChats
         }
         
-        return updatedChats.sorted { $0.updatedAt > $1.updatedAt }
+        filterChats(searchText: searchText)
+        isLoading = false
     }
     
-    // MARK: - Search and Filtering
     private func filterChats(searchText: String) {
         if searchText.isEmpty {
             filteredChats = chats
         } else {
             filteredChats = chats.filter { chat in
-                let otherUserName = chat.otherParticipant?.displayName ?? ""
-                let listingTitle = chat.listing?.title ?? ""
-                let lastMessage = chat.lastMessage?.content ?? ""
+                let otherParticipantName = chat.otherParticipant?.displayName.lowercased() ?? ""
+                let listingTitle = chat.listing?.title.lowercased() ?? ""
+                let lastMessage = chat.lastMessage?.content.lowercased() ?? ""
                 
-                return otherUserName.localizedCaseInsensitiveContains(searchText) ||
-                       listingTitle.localizedCaseInsensitiveContains(searchText) ||
-                       lastMessage.localizedCaseInsensitiveContains(searchText)
+                return otherParticipantName.contains(searchText.lowercased()) ||
+                       listingTitle.contains(searchText.lowercased()) ||
+                       lastMessage.contains(searchText.lowercased())
             }
         }
     }
     
-    // MARK: - Chat Actions
-    func selectChat(_ chat: ChatPreview) {
-        selectedChat = chat
-        showChatView = true
-    }
-    
-    func createChatWithUser(_ user: User, listing: Listing? = nil) {
-        let newChat = Chat(
-            id: UUID().uuidString,
-            participants: [userId, user.id],
-            listingId: listing?.id
-        )
-        
-        let chatPreview = ChatPreview(from: newChat, otherParticipant: user, listing: listing)
-        chats.insert(chatPreview, at: 0)
-        filterChats(searchText: searchText)
-        
-        // Select the new chat
-        selectedChat = chatPreview
-        showChatView = true
-    }
-    
     func togglePinChat(_ chat: ChatPreview) {
-        if let index = chats.firstIndex(where: { $0.id == chat.id }) {
-            chats[index].isPinned.toggle()
-            filterChats(searchText: searchText)
-        }
+        persistenceController.togglePinChat(chatId: chat.id)
+        loadChats() // Reload to reflect changes
     }
     
     func archiveChat(_ chat: ChatPreview) {
-        if let index = chats.firstIndex(where: { $0.id == chat.id }) {
-            chats[index].isArchived.toggle()
-            filterChats(searchText: searchText)
-        }
+        persistenceController.archiveChat(chatId: chat.id)
+        loadChats() // Reload to reflect changes
     }
     
     func deleteChat(_ chat: ChatPreview) {
-        chats.removeAll { $0.id == chat.id }
-        filterChats(searchText: searchText)
+        persistenceController.deleteChat(chatId: chat.id)
+        loadChats() // Reload to reflect changes
     }
     
-    func blockUser(_ userId: String) {
-        // In real app, this would call an API to block the user
-        // For now, we'll remove all chats with this user
-        chats.removeAll { chat in
-            chat.participants.contains(userId)
-        }
-        filterChats(searchText: searchText)
+    func markChatAsRead(_ chat: ChatPreview) {
+        persistenceController.markChatAsRead(chatId: chat.id)
+        loadChats() // Reload to reflect changes
     }
     
-    func reportUser(_ userId: String, reason: String) {
-        // In real app, this would call an API to report the user
-        showError(message: "User reported successfully")
+    // MARK: - Real-time Updates
+    func updateChatLastMessage(chatId: String, messageId: String, content: String, senderId: String) {
+        persistenceController.updateChatLastMessage(
+            chatId: chatId,
+            messageId: messageId,
+            content: content,
+            senderId: senderId
+        )
+        loadChats() // Reload to reflect changes
     }
     
-    func addNewChat(_ chat: ChatPreview) {
-        // Add the new chat to the beginning of the list
-        chats.insert(chat, at: 0)
-        filterChats(searchText: searchText)
+    private func generateSampleChatsInCoreData() {
+        // Create sample users first
+        let user1 = persistenceController.addUser(
+            id: "user1",
+            email: "john@example.com",
+            displayName: "John Smith"
+        )
+        
+        let user2 = persistenceController.addUser(
+            id: "user2",
+            email: "sarah@example.com",
+            displayName: "Sarah Johnson"
+        )
+        
+        let user3 = persistenceController.addUser(
+            id: "user3",
+            email: "mike@example.com",
+            displayName: "Mike Wilson"
+        )
+        
+        // Create sample listings
+        let sampleLocation = Location(
+            latitude: 37.7749,
+            longitude: -122.4194,
+            address: "123 Main St",
+            city: "San Francisco"
+        )
+        
+        var listing1 = Listing(
+            id: UUID().uuidString,
+            sellerId: user1.id ?? "",
+            title: "iPhone 14 Pro Max",
+            description: "Excellent condition iPhone 14 Pro Max, 256GB.",
+            price: 899.99,
+            category: .electronics,
+            condition: .excellent,
+            location: sampleLocation
+        )
+        listing1.images = ["sample1.jpg"]
+        let _ = persistenceController.saveListing(listing1)
+        
+        var listing2 = Listing(
+            id: UUID().uuidString,
+            sellerId: user2.id ?? "",
+            title: "Nike Air Jordan 1",
+            description: "Authentic Nike Air Jordan 1 in size 10.",
+            price: 150.00,
+            category: .clothing,
+            condition: .good,
+            location: sampleLocation
+        )
+        listing2.images = ["sample2.jpg"]
+        let _ = persistenceController.saveListing(listing2)
+        
+        // Create sample chats
+        let chat1 = persistenceController.createChat(
+            participants: [user1.id ?? "", user2.id ?? ""],
+            listingId: listing1.id,
+            lastMessageContent: "Is this still available?",
+            lastMessageSenderId: user2.id ?? ""
+        )
+        
+        let chat2 = persistenceController.createChat(
+            participants: [user1.id ?? "", user3.id ?? ""],
+            listingId: listing2.id,
+            lastMessageContent: "What's your best price?",
+            lastMessageSenderId: user3.id ?? ""
+        )
+        
+        // Create sample messages
+        let _ = persistenceController.sendMessage(
+            id: UUID().uuidString,
+            chatId: chat1.id ?? "",
+            senderId: user2.id ?? "",
+            receiverId: user1.id ?? "",
+            content: "Is this still available?",
+            messageType: "text"
+        )
+        
+        let _ = persistenceController.sendMessage(
+            id: UUID().uuidString,
+            chatId: chat2.id ?? "",
+            senderId: user3.id ?? "",
+            receiverId: user1.id ?? "",
+            content: "What's your best price?",
+            messageType: "text"
+        )
     }
     
-    func markChatAsRead(_ chatId: String) {
-        if let index = chats.firstIndex(where: { $0.id == chatId }) {
-            chats[index].unreadCount = 0
-            filterChats(searchText: searchText)
-        }
-    }
-    
-    // MARK: - Error Handling
     private func showError(message: String) {
         errorMessage = message
         showError = true
-    }
-    
-    func dismissError() {
-        showError = false
-        errorMessage = ""
-    }
-    
-    // MARK: - Computed Properties
-    var pinnedChats: [ChatPreview] {
-        return filteredChats.filter { $0.isPinned }
-    }
-    
-    var regularChats: [ChatPreview] {
-        return filteredChats.filter { !$0.isPinned && !$0.isArchived }
-    }
-    
-    var archivedChats: [ChatPreview] {
-        return filteredChats.filter { $0.isArchived }
     }
 }

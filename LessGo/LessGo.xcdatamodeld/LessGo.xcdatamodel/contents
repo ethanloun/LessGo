@@ -34,6 +34,7 @@
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="views" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="messages" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDMessage" inverseName="listing" inverseEntity="CDMessage"/>
+        <relationship name="chats" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDChat" inverseName="listing" inverseEntity="CDChat"/>
         <relationship name="owner" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CDUser" inverseName="listings" inverseEntity="CDUser"/>
     </entity>
     <entity name="CDMessage" representedClassName="CDMessage" syncable="YES" codeGenerationType="class">
@@ -51,6 +52,7 @@
         <attribute name="thumbnailURL" optional="YES" attributeType="String"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="listing" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CDListing" inverseName="messages" inverseEntity="CDListing"/>
+        <relationship name="chat" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CDChat" inverseName="messages" inverseEntity="CDChat"/>
         <relationship name="sender" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CDUser" inverseName="messages" inverseEntity="CDUser"/>
     </entity>
     <entity name="CDUser" representedClassName="CDUser" syncable="YES" codeGenerationType="class">
@@ -76,5 +78,20 @@
         <attribute name="verificationDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="listings" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDListing" inverseName="owner" inverseEntity="CDListing"/>
         <relationship name="messages" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDMessage" inverseName="sender" inverseEntity="CDMessage"/>
+        <relationship name="chats" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDChat" inverseName="participantUsers" inverseEntity="CDChat"/>
+    </entity>
+    <entity name="CDChat" representedClassName="CDChat" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="isArchived" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isPinned" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="lastMessageAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="lastMessageContent" optional="YES" attributeType="String"/>
+        <attribute name="lastMessageId" optional="YES" attributeType="String"/>
+        <attribute name="lastMessageSenderId" optional="YES" attributeType="String"/>
+        <attribute name="participants" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromDataTransformer" customClassName="[String]"/>
+        <attribute name="unreadCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="listing" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CDListing" inverseName="chats" inverseEntity="CDListing"/>
+        <relationship name="messages" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDMessage" inverseName="chat" inverseEntity="CDMessage"/>
+        <relationship name="participantUsers" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CDUser" inverseName="chats" inverseEntity="CDUser"/>
     </entity>
 </model>

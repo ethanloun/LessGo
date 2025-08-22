@@ -4,7 +4,7 @@ struct MainTabView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @StateObject private var listingViewModel = ListingViewModel()
     @StateObject private var createListingViewModel = CreateListingViewModel(sellerId: "current_user")
-    @StateObject private var messagingViewModel = MessagingViewModel(currentUserId: "currentUser")
+    @StateObject private var messagingViewModel = MessagingViewModel()
     @State private var selectedTab = 0
     @State private var showingCreateListing = false
 
@@ -24,10 +24,10 @@ struct MainTabView: View {
 
                 Color.clear.tag(2)
 
-                // Use a placeholder view for messages tab since we need a listing context
-                MessagesPlaceholderView()
-                    .environmentObject(messagingViewModel)
-                    .tag(3)
+                                   // Messages tab with full messaging functionality
+                   MessagesView()
+                       .environmentObject(messagingViewModel)
+                       .tag(3)
 
                 ProfileView()
                     .environmentObject(authViewModel)

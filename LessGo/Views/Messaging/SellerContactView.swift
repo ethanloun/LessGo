@@ -1,11 +1,11 @@
 import SwiftUI
+import CoreData
 
 struct SellerContactView: View {
     let listing: Listing
     let onDismiss: () -> Void
-    let onChatStarted: (() -> Void)?
-    @EnvironmentObject var viewModel: MessagingViewModel
     @State private var showChatView = false
+    @State private var showingNewMessage = false
     
     var body: some View {
         NavigationView {
@@ -140,26 +140,7 @@ struct SellerContactView: View {
                 // Contact Options
                 VStack(spacing: 16) {
                     Button(action: {
-                        // Create a temporary seller user and chat preview for immediate chat access
-                        let seller = User(
-                            id: listing.sellerId,
-                            email: "seller@example.com",
-                            displayName: "Seller"
-                        )
-                        
-                        // Create a temporary chat preview that will be used to open ChatView
-                        let tempChat = Chat(
-                            id: "temp_\(UUID().uuidString)",
-                            participants: ["currentUser", listing.sellerId],
-                            listingId: listing.id
-                        )
-                        
-                        let tempChatPreview = ChatPreview(from: tempChat, otherParticipant: seller, listing: listing)
-                        
-                        // Store the temporary chat in the view model for later use
-                        viewModel.tempChatPreview = tempChatPreview
-                        showChatView = true
-                        // Don't call onChatStarted here - only call it when chat is actually created
+                        showingNewMessage = true
                     }) {
                         HStack {
                             Image(systemName: "message.fill")
@@ -186,21 +167,23 @@ struct SellerContactView: View {
                     onDismiss()
                 }
             )
-            .sheet(isPresented: $showChatView) {
-                if let tempChat = viewModel.tempChatPreview {
-                    ChatView(
-                        chat: tempChat,
-                        onChatCreated: { actualChat in
-                            // Add the actual chat to the messaging view model
-                            viewModel.addNewChat(actualChat)
-                            // Clear the temporary chat
-                            viewModel.tempChatPreview = nil
-                            // Don't close the chat or switch tabs - let the user continue chatting
-                            // The chat will only close when they manually dismiss it, returning them to home page
-                            // Note: onChatStarted is NOT called here, so no tab switching occurs
-                        }
-                    )
-                }
+            .sheet(isPresented: $showingNewMessage) {
+                // Create a direct chat with the seller
+                let seller = User(
+                    id: listing.sellerId,
+                    email: "seller@example.com",
+                    displayName: "Seller"
+                )
+                
+                let directChat = Chat(
+                    id: UUID().uuidString,
+                    participants: ["currentUser", listing.sellerId],
+                    listingId: listing.id
+                )
+                
+                let chatPreview = ChatPreview(from: directChat, otherParticipant: seller, listing: listing)
+                
+                ChatView(chat: chatPreview)
             }
         }
     }
@@ -218,8 +201,6 @@ struct SellerContactView: View {
             condition: .excellent,
             location: Location(city: "San Francisco", state: "CA")
         ),
-        onDismiss: {},
-        onChatStarted: {}
+        onDismiss: {}
     )
-    .environmentObject(MessagingViewModel(currentUserId: "currentUser"))
 }
