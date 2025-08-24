@@ -400,7 +400,13 @@ extension PersistenceController {
             chat.lastMessageContent = content
             chat.lastMessageSenderId = senderId
             chat.lastMessageAt = Date()
-            chat.unreadCount += 1
+            
+            // Only increment unread count if the message is from someone else
+            // (not the current user)
+            if senderId != "currentUser" {
+                chat.unreadCount += 1
+            }
+            
             save()
         }
     }
@@ -409,6 +415,70 @@ extension PersistenceController {
         // In a real app, this would update the current user's blocked users list
         // For now, we'll just print a message
         print("User \(userId) blocked")
+    }
+    
+    // MARK: - Favorites Management
+    func toggleFavorite(userId: String, listingId: String) -> Bool {
+        // Check if already favorited
+        if let existingFavorite = fetchFavorite(userId: userId, listingId: listingId) {
+            // Remove favorite
+            viewContext.delete(existingFavorite)
+            save()
+            return false
+        } else {
+            // Add favorite
+            let favorite = CDFavorite(context: viewContext)
+            favorite.id = UUID().uuidString
+            favorite.userId = userId
+            favorite.listingId = listingId
+            favorite.createdAt = Date()
+            
+            // Link to user and listing
+            if let user = findUser(by: userId) {
+                favorite.user = user
+            }
+            if let listing = findListing(by: listingId) {
+                favorite.listing = listing
+            }
+            
+            save()
+            return true
+        }
+    }
+    
+    func isFavorited(userId: String, listingId: String) -> Bool {
+        return fetchFavorite(userId: userId, listingId: listingId) != nil
+    }
+    
+    func fetchFavorite(userId: String, listingId: String) -> CDFavorite? {
+        let request: NSFetchRequest<CDFavorite> = CDFavorite.fetchRequest()
+        request.predicate = NSPredicate(format: "userId == %@ AND listingId == %@", userId, listingId)
+        
+        do {
+            let favorites = try viewContext.fetch(request)
+            return favorites.first
+        } catch {
+            print("Error fetching favorite: \(error)")
+            return nil
+        }
+    }
+    
+    func fetchUserFavorites(userId: String) -> [CDFavorite] {
+        let request: NSFetchRequest<CDFavorite> = CDFavorite.fetchRequest()
+        request.predicate = NSPredicate(format: "userId == %@", userId)
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \CDFavorite.createdAt, ascending: false)]
+        
+        do {
+            return try viewContext.fetch(request)
+        } catch {
+            print("Error fetching user favorites: \(error)")
+            return []
+        }
+    }
+    
+    func fetchUserFavoritesAsListings(userId: String) -> [CDListing] {
+        let favorites = fetchUserFavorites(userId: userId)
+        return favorites.compactMap { $0.listing }
     }
     
     func fetchChatsAsStructs() -> [ChatPreview] {

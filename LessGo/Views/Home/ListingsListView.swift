@@ -34,10 +34,10 @@ struct ListingsListView: View {
                     .padding(.top, Constants.Design.largeSpacing)
                 } else {
                     ForEach(listings) { listing in
-                        ListingCardView(listing: listing, onMessageSeller: onMessageSeller)
-                            .onTapGesture {
-                                // TODO: Navigate to listing detail
-                            }
+                        NavigationLink(destination: ListingDetailView(listing: listing)) {
+                            ListingCardView(listing: listing, onMessageSeller: onMessageSeller)
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
                     
                     // Load more button

@@ -36,6 +36,7 @@
         <relationship name="messages" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDMessage" inverseName="listing" inverseEntity="CDMessage"/>
         <relationship name="chats" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDChat" inverseName="listing" inverseEntity="CDChat"/>
         <relationship name="owner" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CDUser" inverseName="listings" inverseEntity="CDUser"/>
+        <relationship name="favoritedBy" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDFavorite" inverseName="listing" inverseEntity="CDFavorite"/>
     </entity>
     <entity name="CDMessage" representedClassName="CDMessage" syncable="YES" codeGenerationType="class">
         <attribute name="chatId" optional="YES" attributeType="String"/>
@@ -79,6 +80,7 @@
         <relationship name="listings" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDListing" inverseName="owner" inverseEntity="CDListing"/>
         <relationship name="messages" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDMessage" inverseName="sender" inverseEntity="CDMessage"/>
         <relationship name="chats" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDChat" inverseName="participantUsers" inverseEntity="CDChat"/>
+        <relationship name="favorites" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDFavorite" inverseName="user" inverseEntity="CDFavorite"/>
     </entity>
     <entity name="CDChat" representedClassName="CDChat" syncable="YES" codeGenerationType="class">
         <attribute name="id" optional="YES" attributeType="String"/>
@@ -93,5 +95,13 @@
         <relationship name="listing" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CDListing" inverseName="chats" inverseEntity="CDListing"/>
         <relationship name="messages" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDMessage" inverseName="chat" inverseEntity="CDMessage"/>
         <relationship name="participantUsers" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CDUser" inverseName="chats" inverseEntity="CDUser"/>
+    </entity>
+    <entity name="CDFavorite" representedClassName="CDFavorite" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="userId" optional="YES" attributeType="String"/>
+        <attribute name="listingId" optional="YES" attributeType="String"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CDUser" inverseName="favorites" inverseEntity="CDUser"/>
+        <relationship name="listing" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CDListing" inverseName="favoritedBy" inverseEntity="CDListing"/>
     </entity>
 </model>

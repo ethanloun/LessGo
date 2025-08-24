@@ -6,6 +6,8 @@ struct ListingCardView: View {
     @State private var isFavorite = false
     @State private var showSellerContact = false
     
+    private let persistenceController = PersistenceController.shared
+    
     init(listing: Listing, onMessageSeller: (() -> Void)? = nil) {
         self.listing = listing
         self.onMessageSeller = onMessageSeller
@@ -32,9 +34,7 @@ struct ListingCardView: View {
                 
                 // Favorite Button
                 Button(action: {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                        isFavorite.toggle()
-                    }
+                    toggleFavorite()
                 }) {
                     Image(systemName: isFavorite ? "heart.fill" : "heart")
                         .font(.title2)
@@ -174,10 +174,26 @@ struct ListingCardView: View {
                 listing: listing,
                 onDismiss: {
                     showSellerContact = false
-                },
-
+                }
             )
         }
+        .onAppear {
+            checkFavoriteStatus()
+        }
+    }
+    
+    private func toggleFavorite() {
+        let currentUserId = "currentUser"
+        let newFavoriteState = persistenceController.toggleFavorite(userId: currentUserId, listingId: listing.id)
+        
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+            isFavorite = newFavoriteState
+        }
+    }
+    
+    private func checkFavoriteStatus() {
+        let currentUserId = "currentUser"
+        isFavorite = persistenceController.isFavorited(userId: currentUserId, listingId: listing.id)
     }
 }
 
@@ -199,6 +215,7 @@ struct ListingCardView: View {
     )
     .padding()
 }
+
 
 
 

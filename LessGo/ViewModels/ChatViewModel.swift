@@ -206,6 +206,9 @@ class ChatViewModel: ObservableObject {
                 messages[index].readAt = Date()
             }
         }
+        
+        // Reset the chat's unread count since we're viewing it
+        persistenceController.markChatAsRead(chatId: chatId)
     }
     
     func deleteMessage(_ message: Message) {

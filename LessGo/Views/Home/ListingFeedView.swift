@@ -14,7 +14,8 @@ struct ListingFeedView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
+        NavigationView {
+            VStack(spacing: 0) {
             // Custom Header
             HStack {
                 Text("LessGo")
@@ -65,6 +66,7 @@ struct ListingFeedView: View {
             }
         } message: {
             Text(listingViewModel.errorMessage ?? "An error occurred")
+        }
         }
     }
 }
